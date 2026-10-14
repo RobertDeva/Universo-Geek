@@ -10,7 +10,8 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - Marketplace conectado a Supabase: lista servicios aprobados, permite enviar servicios a moderación y crea solicitudes para servicios aprobados.
 - La política RLS de la base de datos comprueba que el precio y la moneda de una solicitud coincidan con el anuncio aprobado.
 - Borradores de privacidad y cookies.
-- Página de administración de marcador y página de resultado de pago que indican explícitamente que esas funciones siguen desactivadas.
+- Centro de moderación funcional para servicios y anuncios de afiliados, con verificación de rol y RPCs seguras que registran las decisiones en auditoría.
+- Gestión de roles y transacciones financieras continúa restringida a administradores/backend; la página no permite activar pagos.
 - Cabeceras iniciales de seguridad, guía de Cloudflare Pages e informe de seguridad de Supabase.
 
 ## Seguridad aplicada en Supabase
@@ -21,10 +22,11 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - Restringidos los cambios de pedidos de servicio a su estado, con validación de transiciones.
 - El cliente ya no puede insertar pedidos de membresías o compras digitales. Esas órdenes deberán crearse desde un backend que calcule precios y referencias.
 - Los registros de auditoría administrativa no se pueden escribir directamente desde el navegador.
+- El rol moderator ya no puede promover cuentas a admin; las funciones de moderación se limitan a servicios/anuncios y contenido comunitario.
 - Las migraciones están versionadas en `supabase/migrations/`. El bootstrap histórico del administrador se conserva como marcador sin correo personal; consulta `docs/ADMIN-BOOTSTRAP.md` para preparar otro entorno.
 
 ## Limitaciones deliberadas
-- No hay panel administrativo funcional para moderar anuncios, asignar roles ni revisar transacciones.
+- La moderación de servicios y anuncios ya está conectada; el panel de administración general para usuarios, roles y transacciones todavía no está completo.
 - El checkout está desactivado. No se crean facturas, no se aceptan pagos y no se activan membresías pagadas.
 - Las funciones Edge de QvaPay no se han desplegado; falta la cuenta comercial y confirmar el formato real del webhook.
 - Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente.
