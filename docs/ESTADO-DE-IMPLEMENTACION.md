@@ -3,30 +3,51 @@
 Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript nativo. No requiere npm, bundler ni CDN. Se mantiene separada de `main` y **no está publicada**.
 
 ## Incluido en esta fase
-- Portada adaptable y navegación móvil.
-- Registro/inicio de sesión y solicitud de recuperación mediante Supabase Auth.
-- Panel personal básico que verifica la sesión.
-- Páginas informativas de marketplace y membresías; no aceptan pagos ni crean pedidos.
+- Portada y navegación móvil.
+- Registro, inicio de sesión y recuperación de contraseña mediante Supabase Auth.
+- Renovación automática de sesión cuando el access token expira y existe un refresh token.
+- Panel personal mínimo con comprobación de sesión.
+- Marketplace conectado a Supabase: lista servicios aprobados, permite enviar servicios a moderación y crea solicitudes para servicios aprobados.
+- La política RLS de la base de datos comprueba que el precio y la moneda de una solicitud coincidan con el anuncio aprobado.
 - Borradores de privacidad y cookies.
-- Cabeceras de seguridad para Cloudflare Pages y configuración de Supabase Functions como referencia.
+- Página de administración de marcador y página de resultado de pago que indican explícitamente que esas funciones siguen desactivadas.
+- Cabeceras iniciales de seguridad, guía de Cloudflare Pages e informe de seguridad de Supabase.
+
+## Seguridad aplicada en Supabase
+- Revocados privilegios de TRUNCATE, REFERENCES y TRIGGER a los roles de navegador.
+- Añadidos índices para claves foráneas detectadas por el asesor.
+- Corregida la política de reseñas para validar comprador, pedido completado y servicio correspondiente.
+- Restringidas las columnas de perfil que el usuario puede actualizar.
+- Restringidos los cambios de pedidos de servicio a su estado, con validación de transiciones.
+- El cliente ya no puede insertar pedidos de membresías o compras digitales. Esas órdenes deberán crearse desde un backend que calcule precios y referencias.
+- Los registros de auditoría administrativa no se pueden escribir directamente desde el navegador.
+- Las migraciones están versionadas en `supabase/migrations/`. El bootstrap histórico del administrador se conserva como marcador sin correo personal; consulta `docs/ADMIN-BOOTSTRAP.md` para preparar otro entorno.
 
 ## Limitaciones deliberadas
-- La publicación y contratación real de servicios todavía no está conectada al backend.
-- La administración/moderación no está habilitada en esta base.
-- No se crean facturas QvaPay y no se activan membresías pagadas.
-- No se ha ejecutado SQL ni desplegado ninguna función en Supabase.
-- Los correos `@universogeek.example` son marcadores de posición y deben reemplazarse.
-- El CSP estático permite scripts inline para esta base; para producción, mover scripts inline a archivos locales y retirar `unsafe-inline`.
+- No hay panel administrativo funcional para moderar anuncios, asignar roles ni revisar transacciones.
+- El checkout está desactivado. No se crean facturas, no se aceptan pagos y no se activan membresías pagadas.
+- Las funciones Edge de QvaPay no se han desplegado; falta la cuenta comercial y confirmar el formato real del webhook.
+- Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente.
+- Los correos con dominio `.example` son marcadores de posición y deben reemplazarse.
+- La política de privacidad/cookies es un borrador y requiere datos del operador y revisión legal.
 
-## Pruebas realizadas
-- Inspección de la rama principal y de la estructura de tablas/migraciones existentes.
-- Revisión estática del paquete anterior y comprobación sintáctica de los JS originales del paquete.
-- La reconstrucción de esta rama requiere pruebas funcionales con dominio local o staging, porque Auth necesita un origen permitido en Supabase.
+## Configuración de Supabase pendiente
+1. Agregar solo las URL de redirección necesarias para el entorno de prueba.
+2. Configurar correo SMTP y recuperación de cuenta.
+3. **Activar la protección contra contraseñas filtradas** en Authentication → Security and Protection. El asesor de seguridad todavía informa que está deshabilitada.
+4. Probar RLS con usuarios separados de tipo user, moderator y admin.
+
+## Pruebas y verificación
+- Verificados en Supabase los privilegios efectivos de roles y columnas tras las migraciones.
+- Verificada la política de creación de pedidos del marketplace contra el importe y moneda del anuncio.
+- El asesor de seguridad solo mantiene el aviso de protección de contraseñas filtradas.
+- El asesor de rendimiento ya no reporta claves foráneas sin índice ni evaluaciones Auth repetidas; quedan avisos de políticas permisivas superpuestas e índices sin uso que no deben eliminarse sin métricas de tráfico.
+- No se han ejecutado pruebas de navegador ni transacciones reales. La autenticación debe probarse desde un origen autorizado en Supabase.
 
 ## Próximas tareas
-1. Prueba de sintaxis de los JS añadidos y revisión de enlaces internos.
-2. Pruebas de Auth con redirect URLs válidas.
-3. Revisión del CSP y formularios.
-4. Integración segura del marketplace y panel de moderación contra las tablas y RLS reales.
-5. Validación oficial de webhooks QvaPay y pruebas de funciones en staging.
+1. Habilitar protección contra contraseñas filtradas en el Dashboard.
+2. Probar registro, inicio, recuperación y renovación de sesión desde un entorno local/staging.
+3. Implementar panel de moderación y gestión de pedidos con controles de rol del lado del servidor.
+4. Revisar la cadena CSP y mover los scripts inline a archivos locales para poder retirar `unsafe-inline`.
+5. Cuando QvaPay apruebe la cuenta comercial, implementar y probar las funciones de facturación y verificación sin exponer secretos.
 6. Completar datos legales/contacto y solo publicar con autorización expresa.
