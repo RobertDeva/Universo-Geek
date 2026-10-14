@@ -27,13 +27,15 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - Panel personal mínimo con comprobación de sesión.
 - Páginas informativas de membresías, privacidad y cookies.
 - Marketplace conectado a Supabase para listar servicios aprobados, enviar publicaciones pendientes y crear solicitudes de contratación sin procesar pagos.
-- Página de administración de marcador y resultado de pago que indican explícitamente que esas funciones están desactivadas.
+- Centro de moderación para servicios y anuncios de afiliados, con RPCs seguras y auditoría.
+- Página de resultado de pago que no confirma ni activa pagos.
 - Cabeceras iniciales de seguridad y documentación técnica.
 
 ## Funciones que aún NO están listas
 
 - La publicación y las solicitudes de contratación del marketplace ya están conectadas a Supabase; la moderación y la gestión posterior de pedidos aún requieren panel administrativo.
-- No hay panel administrativo funcional para cambiar roles ni revisar transacciones.
+- El panel general para usuarios, asignación de roles y transacciones todavía no está implementado. La moderación de servicios/anuncios sí está conectada.
+- El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
 - Formularios de contacto, newsletter, favoritos, compras y contenido editorial no están conectados completamente.
