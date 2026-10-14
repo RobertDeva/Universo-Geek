@@ -15,5 +15,5 @@
   }
   window.UG={api, user:()=>JSON.parse(localStorage.getItem("ug_user")||"null"), token:()=>localStorage.getItem("ug_access_token"), requireAuth(){if(!this.token())location.href="login.html";}, async signOut(){try{await api("/auth/v1/logout",{method:"POST"});}catch{}localStorage.removeItem("ug_access_token");localStorage.removeItem("ug_refresh_token");localStorage.removeItem("ug_user");location.href="index.html";}};
   document.querySelectorAll("[data-signout]").forEach(el=>el.addEventListener("click",()=>window.UG.signOut()));
-  document.querySelectorAll("[data-user-email]").forEach(el=>el.textContent=window.UG.user()?.email||"Cuenta"));
+  document.querySelectorAll("[data-user-email]").forEach(el=>{el.textContent=window.UG.user()?.email||"Cuenta";});
 })();
