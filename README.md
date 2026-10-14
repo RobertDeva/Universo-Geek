@@ -7,6 +7,7 @@ Plataforma en preparación para comunidad gamer, anime, manga y manhwa, enfocada
 La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audit/rebuild-2026-10-14`; **no se ha publicado ni desplegado el sitio**.
 
 - [Guía para editar el código manualmente](docs/GUIA-CODIGO-HUMANO.md)
+- [Asistente de ayuda y feedback](docs/ASISTENTE-Y-FEEDBACK.md)
 - [Auditoría técnica](AUDITORIA-TECNICA-2026-10-14.md)
 - [Revisión del paquete anterior y riesgos de pago](REVISION-PAQUETE.md)
 - [Estado de implementación](docs/ESTADO-DE-IMPLEMENTACION.md)
@@ -30,6 +31,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - Marketplace conectado a Supabase para listar servicios aprobados, enviar publicaciones pendientes y crear solicitudes de contratación sin procesar pagos.
 - Panel personal con gestión del flujo de pedidos como comprador/vendedor; las transiciones se validan en la base de datos.
 - Centro de moderación para servicios y anuncios de afiliados, con RPCs seguras y auditoría.
+- Asistente local de preguntas frecuentes, visible en todas las páginas, con formulario de feedback y bandeja de revisión para administradores.
 - Página de resultado de pago que no confirma ni activa pagos.
 - Cabeceras iniciales de seguridad y documentación técnica.
 
@@ -40,7 +42,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
-- Formularios de contacto, newsletter, favoritos, compras y contenido editorial no están conectados completamente.
+- Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente. El feedback del asistente sí se guarda en Supabase.
 - Los correos con dominio `.example` son marcadores de posición y deben reemplazarse.
 - La política de privacidad/cookies es un borrador y requiere datos del operador y revisión legal.
 
