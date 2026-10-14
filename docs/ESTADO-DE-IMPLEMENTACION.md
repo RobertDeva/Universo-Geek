@@ -8,6 +8,7 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - Renovación automática de sesión cuando el access token expira y existe un refresh token.
 - Panel personal mínimo con comprobación de sesión.
 - Marketplace conectado a Supabase: lista servicios aprobados, permite enviar servicios a moderación y crea solicitudes para servicios aprobados.
+- Panel personal con lista de pedidos del usuario y transiciones de estado de comprador/vendedor validadas por RLS y trigger.
 - La política RLS de la base de datos comprueba que el precio y la moneda de una solicitud coincidan con el anuncio aprobado.
 - Borradores de privacidad y cookies.
 - Centro de moderación funcional para servicios y anuncios de afiliados, con verificación de rol y RPCs seguras que registran las decisiones en auditoría.
@@ -49,7 +50,7 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 ## Próximas tareas
 1. Habilitar protección contra contraseñas filtradas en el Dashboard.
 2. Probar registro, inicio, recuperación y renovación de sesión desde un entorno local/staging.
-3. Implementar panel de moderación y gestión de pedidos con controles de rol del lado del servidor.
+3. Completar las herramientas administrativas de usuarios/roles; moderación de anuncios y el flujo básico de pedidos ya están conectados.
 4. Revisar la cadena CSP y mover los scripts inline a archivos locales para poder retirar `unsafe-inline`.
 5. Cuando QvaPay apruebe la cuenta comercial, implementar y probar las funciones de facturación y verificación sin exponer secretos.
 6. Completar datos legales/contacto y solo publicar con autorización expresa.
