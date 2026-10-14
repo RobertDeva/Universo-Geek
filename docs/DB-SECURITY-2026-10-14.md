@@ -49,4 +49,6 @@ Las cuatro migraciones aplicadas en esta sesión están versionadas en `supabase
 - `20261014081752_secure_client_writes_and_optimize_rls.sql`
 - `20261014081901_validate_marketplace_order_price_against_service.sql`
 
+Las migraciones históricas están sincronizadas en `supabase/migrations/`, incluyendo un marcador saneado para `bootstrap_initial_site_admin` que no almacena el correo del propietario. Para configurar el administrador en un entorno nuevo, sigue `docs/ADMIN-BOOTSTRAP.md`.
+
 La rama `main` no se modificó. Los cambios están en `audit/rebuild-2026-10-14`.
