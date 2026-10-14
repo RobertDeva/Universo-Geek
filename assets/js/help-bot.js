@@ -11,15 +11,17 @@
 (() => {
   "use strict";
 
+  // Respuestas redactadas a partir de las páginas y los flujos actuales del repositorio.
+  // No añadir afirmaciones hasta verificarlas en el código o en Supabase.
   const FAQ = [
-    {keys:["registr","crear cuenta","abrir cuenta","inscrib","iniciar sesion","iniciar sesión","login","contraseña","contrasena","recuperar"],title:"Cuenta y acceso",answer:"Abre «Entrar» para crear una cuenta o iniciar sesión. Si olvidaste tu contraseña, usa la opción de recuperación de esa página. Si el correo de confirmación está activado, revisa también spam."},
-    {keys:["servicio","marketplace","publicar","ilustr","diseñ","disen","edición","edicion","contratar","vendedor","comprador"],title:"Servicios del marketplace",answer:"En «Servicios» puedes explorar publicaciones aprobadas. Para publicar o solicitar un servicio, inicia sesión. Las publicaciones pueden necesitar moderación. Confirma el alcance y los detalles con la otra persona antes de comprometerte; el flujo de pagos del marketplace todavía no procesa pagos."},
-    {keys:["membres","planes","geek","creator","pro","suscrip"],title:"Membresías",answer:"Consulta los planes en «Membresías». El checkout está desactivado mientras se completa la integración comercial de pagos. No envíes criptomonedas a direcciones compartidas en chats ni a direcciones de prueba."},
-    {keys:["qvapay","pago","pagar","cripto","bitcoin","btc","ethereum","eth","solana","sol","bnb","factura","transaccion","transacción"],title:"Pagos",answer:"Los pagos reales están desactivados. Universo Geek está esperando la confirmación de la cuenta comercial de QvaPay; todavía no debes enviar fondos ni interpretar esta conversación como confirmación de un pago."},
-    {keys:["moderador","moderación","moderacion","reportar","denunciar","contenido","abuso","fraude"],title:"Moderación y reportes",answer:"Las publicaciones del marketplace se revisan antes de aparecer. Si detectas contenido problemático, envía un comentario desde este asistente e indica la página y qué ocurrió. No incluyas contraseñas, documentos de identidad ni datos bancarios."},
-    {keys:["privacidad","datos","información personal","informacion personal","cookies"],title:"Privacidad y cookies",answer:"Puedes consultar las páginas «Privacidad» y «Cookies» desde el pie del sitio. La documentación legal aún debe revisarse antes del lanzamiento. No compartas datos sensibles en el formulario de comentarios."},
-    {keys:["contacto","ayuda","soporte","feedback","comentario","sugerencia","idea","mejorar","problema","error","bug"],title:"Enviar feedback",answer:"Puedes enviar una sugerencia, informar de un error o valorar tu experiencia con el formulario de este asistente. Incluye qué intentabas hacer, qué ocurrió y, si es posible, los pasos para reproducirlo. No es necesario dejar tu correo."},
-    {keys:["telefono","teléfono","movil","móvil","celular","cuba","cdn","internet"],title:"Acceso y compatibilidad",answer:"El proyecto está construido con HTML, CSS y JavaScript nativo y busca evitar CDN externos. Aun así, algunas funciones requieren conexión a Supabase. Si algo no funciona en tu dispositivo o conexión, indícalo en el feedback."}
+    {keys:["crear cuenta","registrarme","registro","iniciar sesion","entrar","login","contrasena","recuperar contraseña"],title:"Cuenta",answer:"La página Entrar permite iniciar sesión, crear una cuenta con correo y contraseña y solicitar la recuperación de contraseña. Si la confirmación por correo está activada, revisa también la bandeja de spam."},
+    {keys:["servicios aprobados","publicar servicio","publicar un servicio","solicitar servicio","marketplace","contratar un servicio"],title:"Servicios",answer:"La página Servicios muestra los servicios aprobados y permite iniciar sesión para publicar o enviar una solicitud. La solicitud no cobra ni reserva dinero; el marketplace no procesa pagos en esta versión."},
+    {keys:["membresias","planes","geek","creator","otaku pro"],title:"Membresías",answer:"La página Membresías muestra las opciones Geek, Creator y Otaku Pro. Son informativas en esta versión: el checkout está desactivado y no se puede pagar ni activar una membresía desde el sitio."},
+    {keys:["qvapay","pagos","pagar","criptomonedas","bitcoin","btc","ethereum","eth","solana","bnb","checkout","transaccion"],title:"Pagos",answer:"Los pagos reales están desactivados. La integración comercial de QvaPay sigue en preparación y depende de la cuenta comercial y de la verificación del backend. No envíes dinero ni criptomonedas; el bot no puede confirmar pagos."},
+    {keys:["feedback","sugerencia","enviar comentario","reportar error","problema","pregunta sin respuesta"],title:"Feedback",answer:"Puedes enviar una pregunta o sugerencia con el formulario de este asistente. El correo es opcional. Los comentarios quedan para revisión administrativa; no hay un plazo de respuesta prometido. No incluyas contraseñas, claves privadas ni datos bancarios."},
+    {keys:["privacidad","cookies","terminos y condiciones","datos personales"],title:"Políticas",answer:"El sitio incluye páginas de Privacidad, Cookies y Términos y condiciones. Los propios documentos indican que deben revisarse antes del lanzamiento comercial."},
+    {keys:["moderacion","moderador","administrador","anuncio pendiente"],title:"Moderación",answer:"El panel de moderación incluye colas de servicios y anuncios pendientes. La bandeja de feedback está reservada al rol admin; los moderadores no tienen acceso a esa bandeja por defecto."},
+    {keys:["universo geek","que es el sitio","que ofrece el sitio","anime","manga","manhwa","gaming"],title:"Sobre el sitio",answer:"Universo Geek es una plataforma en desarrollo para la comunidad gamer y fans del anime, manga y manhwa, con enfoque en Latinoamérica y Estados Unidos. La portada presenta la comunidad y el marketplace de servicios creativos."}
   ];
 
   const norm = value => String(value || "").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
@@ -112,11 +114,15 @@
       messages.scrollTop=messages.scrollHeight;
     }
     function answer(text) {
-      const clean=norm(text);
-      if (!clean) return "Escribe una pregunta para que pueda buscar una respuesta.";
-      const ranked=FAQ.map(item=>({item,points:score(clean,item.keys)})).sort((a,b)=>b.points-a.points);
-      if (!ranked[0] || ranked[0].points===0) return "No tengo una respuesta fiable para esa pregunta todavía. Prueba con «cuenta», «servicios», «membresías», «pagos» o envíanos la duda mediante el formulario de feedback.";
-      return ranked[0].item.answer;
+      const clean = norm(text);
+      if (!clean) return "Escribe una pregunta sobre una función de Universo Geek.";
+      const matches = FAQ.map(item => ({
+        item,
+        score: item.keys.reduce((n,key) => n + (clean.includes(norm(key)) ? Math.max(1,norm(key).split(" ").length) : 0), 0)
+      })).filter(result => result.score > 0).sort((a,b) => b.score-a.score);
+      if (!matches.length) return "No encuentro una respuesta confirmada para esa pregunta en la documentación actual del sitio. No voy a adivinar. Envíala como «Pregunta sin respuesta» mediante el formulario para que el equipo pueda revisarla.";
+      if (matches.length > 1 && matches[0].score === matches[1].score) return "Tu pregunta puede referirse a más de una función y no quiero darte información incorrecta. Reformúlala sobre un solo tema o envíala al equipo mediante el formulario.";
+      return matches[0].item.answer;
     }
     function ask(text) {
       say(text,"user");
