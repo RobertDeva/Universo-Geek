@@ -15,6 +15,9 @@ Estado: cambios de base de datos aplicados y comprobados. Sitio no publicado. No
 8. El registro de auditoría administrativa quedó de solo lectura para el navegador, sujeto a su política RLS de administradores.
 9. Se optimizaron las políticas RLS que llamaban repetidamente a funciones de autenticación.
 10. La política de creación de pedidos del marketplace ahora verifica que el importe y la moneda coincidan con el servicio aprobado.
+11. Se separaron los roles: `private.is_admin()` solo reconoce administradores; se añadió `private.is_moderator_or_admin()` para moderación.
+12. El cambio de roles queda protegido para que un moderador no pueda promoverse ni promover a otro usuario a administrador.
+13. Se añadieron RPCs autenticadas `moderate_marketplace_service` y `moderate_affiliate_ad`, que solo permiten cambiar el estado de moderación, registran el revisor y escriben en la auditoría.
 
 ## Verificación posterior
 
@@ -43,11 +46,12 @@ No hay Edge Functions desplegadas y el checkout sigue desactivado. Como la cuent
 
 ## Migraciones
 
-Las cuatro migraciones aplicadas en esta sesión están versionadas en `supabase/migrations` con sus versiones reales de Supabase:
+Las migraciones aplicadas en esta sesión están versionadas en `supabase/migrations` con sus versiones reales de Supabase:
 - `20261014081504_tighten_public_grants_review_policy_and_fk_indexes.sql`
 - `20261014081711_tighten_audit_profile_grants_and_optimize_rls_predicates.sql`
 - `20261014081752_secure_client_writes_and_optimize_rls.sql`
 - `20261014081901_validate_marketplace_order_price_against_service.sql`
+- `20261014082608_separate_admin_and_moderator_permissions.sql`
 
 Las migraciones históricas están sincronizadas en `supabase/migrations/`, incluyendo un marcador saneado para `bootstrap_initial_site_admin` que no almacena el correo del propietario. Para configurar el administrador en un entorno nuevo, sigue `docs/ADMIN-BOOTSTRAP.md`.
 
