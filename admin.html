@@ -1,1 +1,77 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Administración — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head><body><header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="dashboard.html">Mi espacio</a><a href="services.html">Servicios</a><button class="button secondary" data-signout>Salir</button></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header><main class="page-wrap"><span class="eyebrow">HERRAMIENTAS INTERNAS</span><h1 class="page-title">Administración</h1><p class="muted">Esta página es solo una entrada protegida por sesión; las herramientas de moderación aún no están conectadas. Tener una sesión iniciada no concede privilegios administrativos.</p><section class="panel"><div id="status" class="notice">Verificando identidad…</div><h2>Antes de habilitar moderación</h2><ul class="muted"><li>Comprobar el rol en el backend o en una función SQL/RPC segura, nunca confiar en datos editables del navegador.</li><li>Aplicar pruebas de RLS para cuentas user, moderator y admin.</li><li>Registrar acciones administrativas en auditoría.</li><li>No exponer la clave service_role en el frontend.</li></ul><a class="button secondary" href="dashboard.html">Volver al panel</a></section></main><footer class="footer"><a href="privacy.html">Privacidad</a><small>© Universo Geek</small></footer><script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>UG.requireAuth();(async()=>{const s=document.querySelector("#status");try{const user=await UG.api("/auth/v1/user");s.className="notice success";s.textContent="Sesión válida: "+(user.email||"cuenta verificada")+". Las herramientas administrativas están deshabilitadas hasta terminar la revisión de roles y RLS.";}catch(e){s.className="notice error";s.textContent="No se pudo verificar la sesión. Inicia sesión nuevamente.";localStorage.removeItem("ug_access_token");}})();</script></body></html>
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Herramientas seguras de moderación de Universo Geek."><title>Moderación — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="dashboard.html">Mi espacio</a><a href="services.html">Marketplace</a><a href="membership.html">Membresías</a><button class="button secondary" data-signout>Salir</button></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header>
+<main class="page-wrap"><span class="eyebrow">HERRAMIENTAS INTERNAS</span><h1 class="page-title">Centro de moderación</h1><p class="muted">Las decisiones se envían a funciones de base de datos con verificación de rol. Los pagos y los cambios de roles no se administran desde esta página.</p>
+<div id="status" class="notice" aria-live="polite">Verificando identidad y permisos…</div>
+<section id="moderation-ui" hidden>
+  <section class="panel"><div class="section-heading"><div><span class="eyebrow">MARKETPLACE</span><h2>Servicios pendientes</h2></div><button class="button secondary" id="refresh-services" type="button">Actualizar</button></div><div id="services-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
+  <section class="panel"><div class="section-heading"><div><span class="eyebrow">AFILIADOS</span><h2>Anuncios pendientes</h2></div><button class="button secondary" id="refresh-ads" type="button">Actualizar</button></div><div id="ads-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
+  <section class="panel"><h2>Pagos y membresías</h2><p class="notice">Las acciones sobre pagos están desactivadas hasta que QvaPay apruebe la cuenta comercial y se pruebe la verificación de transacciones. No cambies estados de pago manualmente desde el navegador.</p></section>
+</section>
+</main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek</small></footer>
+<script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>
+UG.requireAuth();
+const statusBox=document.querySelector("#status"), ui=document.querySelector("#moderation-ui");
+const serviceQueue=document.querySelector("#services-queue"), adsQueue=document.querySelector("#ads-queue");
+function noteBox(text,kind="notice"){statusBox.className="notice "+kind;statusBox.textContent=text;}
+function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+function renderQueue(container,rows,type){
+ container.replaceChildren();
+ if(!rows.length){container.append(make("p","empty-state","No hay elementos pendientes de revisión."));return;}
+ for(const row of rows){
+  const card=make("article","service-card");
+  card.append(make("span","badge",type==="service"?(row.category||"Servicio"):"Anuncio de afiliado"));
+  card.append(make("h3","",row.title));
+  card.append(make("p","muted",row.description));
+  if(type==="service")card.append(make("p","",Number(row.price_amount).toLocaleString("es-US",{style:"currency",currency:row.currency||"USD"})));
+  else {const link=make("a","","Abrir destino ↗");link.href=row.destination_url;link.target="_blank";link.rel="noopener noreferrer";card.append(link,make("p","muted","CTA: "+(row.cta||"—")));}
+  const note=make("textarea","");note.maxLength=500;note.placeholder="Nota de moderación (opcional, máximo 500 caracteres)";note.setAttribute("aria-label","Nota de moderación");note.style.width="100%";note.style.minHeight="76px";note.style.margin="12px 0";note.style.background="var(--bg)";note.style.color="var(--text)";note.style.border="1px solid var(--line)";note.style.borderRadius="10px";note.style.padding="10px";card.append(note);
+  const actions=make("div","form-actions");
+  for(const [label,next,cls] of [["Aprobar","approved","primary"],["Rechazar","rejected","secondary"],["Pausar","paused","secondary"]]){
+    const button=make("button","button "+cls,label);button.type="button";
+    button.addEventListener("click",async()=>{
+      if(!confirm(label+" este elemento?"))return;
+      button.disabled=true;
+      try{
+        const endpoint=type==="service"?"moderate_marketplace_service":"moderate_affiliate_ad";
+        const idKey=type==="service"?"target_service":"target_ad";
+        await UG.api("/rest/v1/rpc/"+endpoint,{method:"POST",body:JSON.stringify({[idKey]:row.id,new_status:next,note:note.value.trim()||null})});
+        noteBox("Decisión guardada y registrada en auditoría.","success");
+        await loadQueues();
+      }catch(e){noteBox("No se pudo guardar la decisión: "+e.message,"error");}
+      finally{button.disabled=false;}
+    });
+    actions.append(button);
+  }
+  card.append(actions);container.append(card);
+ }
+}
+async function loadQueues(){
+ serviceQueue.replaceChildren(make("p","empty-state","Cargando servicios…"));
+ adsQueue.replaceChildren(make("p","empty-state","Cargando anuncios…"));
+ try{
+  const [services,ads]=await Promise.all([
+   UG.api("/rest/v1/marketplace_services?select=id,user_id,title,description,category,price_amount,currency,status,created_at&status=eq.pending&order=created_at.asc"),
+   UG.api("/rest/v1/affiliate_ads?select=id,user_id,title,description,destination_url,cta,status,created_at&status=eq.pending&order=created_at.asc")
+  ]);
+  renderQueue(serviceQueue,Array.isArray(services)?services:[],"service");
+  renderQueue(adsQueue,Array.isArray(ads)?ads:[],"ad");
+ }catch(e){serviceQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los servicios."));adsQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los anuncios."));noteBox("Error al cargar las colas de moderación: "+e.message,"error");}
+}
+async function init(){
+ const user=UG.user();
+ if(!user?.id){noteBox("No se pudo identificar la sesión. Vuelve a iniciar sesión.","error");return;}
+ try{
+  const rows=await UG.api("/rest/v1/profiles?select=id,role,display_name&id=eq."+encodeURIComponent(user.id));
+  const profile=Array.isArray(rows)?rows[0]:null;
+  if(!profile||!["admin","moderator"].includes(profile.role)){noteBox("Acceso denegado. Esta sección requiere rol admin o moderator.","error");return;}
+  noteBox("Sesión verificada · rol: "+profile.role+". Las acciones de moderación se registran en auditoría.","success");
+  ui.hidden=false;await loadQueues();
+ }catch(e){noteBox("No se pudo verificar el rol. Comprueba la sesión y las políticas RLS.","error");}
+}
+document.querySelector("#refresh-services").addEventListener("click",loadQueues);
+document.querySelector("#refresh-ads").addEventListener("click",loadQueues);
+init();
+</script></body></html>
