@@ -35,7 +35,7 @@ Se consultaron las políticas y privilegios efectivos. Resultados confirmados:
 ## Hallazgos pendientes
 
 ### Acción manual de Auth
-El asesor de seguridad todavía reporta `auth_leaked_password_protection`: la protección contra contraseñas filtradas está desactivada. No encontré una herramienta autorizada para cambiar ese ajuste directamente desde esta sesión. Actívalo en Supabase Dashboard, en Authentication / Security and Protection, y vuelve a ejecutar el asesor.
+El asesor de seguridad todavía reporta `auth_leaked_password_protection`: la protección contra contraseñas filtradas está desactivada. No encontré una herramienta autorizada para cambiar ese ajuste directamente desde esta sesión. La documentación actual de Supabase indica que esta función está disponible en el plan Pro y superiores; si el proyecto está en Free, puede requerir una actualización de plan. No se cambió el plan ni se generó ningún cargo. Revisa Authentication → Security and Protection y las condiciones del plan antes de activar la opción.
 
 Documentación oficial: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
