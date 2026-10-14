@@ -36,10 +36,13 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - La política de privacidad/cookies es un borrador y requiere datos del operador y revisión legal.
 
 ## Asistente y feedback
-- Las respuestas están definidas manualmente en `assets/js/help-bot.js`; no usa IA externa ni aprende automáticamente.
-- Los comentarios públicos solo pueden insertarse con estado `new`; solo administradores pueden leerlos y cambiar el estado.
-- El formulario incluye validaciones de longitud y honeypot básico. Antes de lanzamiento público, evaluar rate limiting de servidor/CAPTCHA accesible.
-- No se ejecutaron pruebas reales desde navegador; se verificó la sintaxis de JavaScript y los privilegios efectivos de la tabla.
+- El bot responde con reglas estáticas basadas en las páginas y flujos comprobados del sitio; no usa IA externa. Las preguntas no reconocidas o ambiguas reciben una respuesta de incertidumbre, no una invención.
+- Los pagos/membresías se describen como desactivados hasta que se apruebe y pruebe la cuenta comercial de QvaPay.
+- El envío de feedback pasa por la Edge Function `submit-site-feedback`: valida el JSON y los campos, verifica sesiones presentadas, limita el tamaño de solicitud, aplica máximo cinco envíos por hash de IP por hora y no guarda la IP sin procesar.
+- La tabla de límites tiene RLS y no concede acceso directo a usuarios públicos. Los navegadores no pueden insertar directamente en `site_feedback`; la función de servidor llama al RPC con permisos restringidos.
+- La bandeja de administradores incluye estadísticas agregadas: total, pendientes, últimos 30 días y valoración media.
+- Las migraciones aplicadas y la función Edge están versionadas en `supabase/migrations/` y `supabase/functions/submit-site-feedback/index.ts`.
+- La sintaxis del JavaScript del navegador y los scripts inline de administración se han comprobado. La función Edge está activa en Supabase. Aún falta una prueba de extremo a extremo desde un navegador real con usuario anónimo y usuario autenticado.
 
 ## Configuración de Supabase pendiente
 1. Agregar solo las URL de redirección necesarias para el entorno de prueba.
