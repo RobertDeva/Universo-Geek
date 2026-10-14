@@ -11,6 +11,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - [Estado de implementación](docs/ESTADO-DE-IMPLEMENTACION.md)
 - [Guía de preparación de Cloudflare Pages](docs/CLOUDFLARE-PAGES.md)
 - [Informe de cambios de seguridad en Supabase](docs/DB-SECURITY-2026-10-14.md)
+- [Configuración inicial del administrador](docs/ADMIN-BOOTSTRAP.md)
 
 ## Tecnologías y restricciones
 
