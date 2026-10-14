@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Tu espacio personal en Universo Geek."><title>Mi espacio — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="services.html">Servicios</a><a href="membership.html">Membresías</a><button class="button secondary" data-signout>Salir</button></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header>
+<!-- PANEL PERSONAL: solicitudes y pedidos del usuario autenticado. Las transiciones permitidas se vuelven a validar en Supabase. -->
+<main class="page-wrap"><span class="eyebrow">PANEL PERSONAL</span><h1 class="page-title">Tu espacio geek.</h1><p class="muted">Sesión de <span data-user-email>usuario</span></p>
+<div class="feature-grid"><article class="feature-card"><span class="feature-icon">🎨</span><h3>Publica un servicio</h3><p>Comparte tus habilidades creativas con la comunidad.</p><a href="services.html#publish">Crear publicación →</a></article><article class="feature-card"><span class="feature-icon">⭐</span><h3>Membresías</h3><p>Consulta los planes disponibles y el estado de la integración de pagos.</p><a href="membership.html">Explorar planes →</a></article><article class="feature-card"><span class="feature-icon">🛡️</span><h3>Privacidad y seguridad</h3><p>Consulta cómo protegemos tu cuenta y tus datos.</p><a href="privacy.html">Leer política →</a></article><article class="feature-card"><span class="feature-icon">📣</span><h3>Ayuda</h3><p>Contacta al equipo si necesitas soporte.</p><a href="privacy.html">Ver contacto →</a></article></div>
+<section class="panel"><h2>Estado de tu cuenta</h2><p id="profile-status" class="muted">Comprobando sesión…</p><div id="admin-entry"></div></section>
+<section class="panel"><div class="section-heading"><div><span class="eyebrow">MARKETPLACE</span><h2>Mis solicitudes y pedidos</h2></div><button class="button secondary" id="refresh-orders" type="button">Actualizar</button></div><p class="muted">Gestiona solicitudes como comprador o vendedor. Estos estados no procesan pagos; los pagos siguen desactivados.</p><div id="orders-message" aria-live="polite"></div><div id="orders-list" class="list-grid"><p class="empty-state">Cargando pedidos…</p></div></section>
+</main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek</small></footer>
+<script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>
+// PEDIDOS: la interfaz presenta solo las acciones esperadas para el rol y estado actuales; el trigger de base de datos decide si la transición es válida.
+UG.requireAuth();
+const profileStatus=document.querySelector("#profile-status"),ordersList=document.querySelector("#orders-list"),ordersMessage=document.querySelector("#orders-message");
+const statusLabels={requested:"Solicitado",accepted:"Aceptado",in_progress:"En progreso",delivered:"Entregado",completed:"Completado",cancelled:"Cancelado",disputed:"En disputa"};
+function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
+function orderNotice(text,kind="notice"){ordersMessage.className="notice "+kind;ordersMessage.textContent=text;}
+function actionsFor(order,userId){
+ const seller=order.seller_id===userId,buyer=order.buyer_id===userId;
+ if(seller&&order.status==="requested")return [["Aceptar","accepted"],["Cancelar","cancelled"]];
+ if(seller&&order.status==="accepted")return [["Comenzar","in_progress"],["Cancelar","cancelled"]];
+ if(seller&&order.status==="in_progress")return [["Marcar entregado","delivered"],["Cancelar","cancelled"],["Abrir disputa","disputed"]];
+ if(buyer&&order.status==="requested")return [["Cancelar solicitud","cancelled"],["Abrir disputa","disputed"]];
+ if(buyer&&order.status==="delivered")return [["Confirmar y completar","completed"],["Abrir disputa","disputed"],["Cancelar","cancelled"]];
+ return [];
+}
+async function changeOrder(order,next,label,button){
+ if(!confirm(label+"?"))return;
+ button.disabled=true;
+ try{
+  await UG.api("/rest/v1/service_orders?id=eq."+encodeURIComponent(order.id),{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({status:next})});
+  orderNotice("Estado actualizado: "+(statusLabels[next]||next)+".","success");
+  await loadOrders();
+ }catch(e){orderNotice("No se pudo actualizar el pedido: "+e.message,"error");}
+ finally{button.disabled=false;}
+}
+async function loadOrders(){
+ const user=UG.user();if(!user?.id)return;
+ ordersList.replaceChildren(el("p","empty-state","Cargando pedidos…"));
+ try{
+  const rows=await UG.api("/rest/v1/service_orders?select=id,service_id,buyer_id,seller_id,brief,agreed_amount,currency,status,created_at&or=(buyer_id.eq."+user.id+",seller_id.eq."+user.id+")&order=created_at.desc");
+  ordersList.replaceChildren();
+  if(!Array.isArray(rows)||rows.length===0){ordersList.append(el("p","empty-state","Todavía no tienes solicitudes. Explora el marketplace para encontrar servicios."));return;}
+  for(const order of rows){
+   const card=el("article","service-card"),seller=order.seller_id===user.id;
+   card.append(el("span","badge",(seller?"Vendedor":"Comprador")+" · "+(statusLabels[order.status]||order.status)));
+   card.append(el("h3","","Pedido "+order.id.slice(0,8).toUpperCase()));
+   card.append(el("p","muted",order.brief));
+   const amount=Number(order.agreed_amount).toLocaleString("es-US",{style:"currency",currency:order.currency||"USD"});
+   card.append(el("p","",amount+" · "+new Date(order.created_at).toLocaleDateString("es")));
+   const buttons=el("div","form-actions");
+   for(const [label,next] of actionsFor(order,user.id)){const b=el("button","button "+(next==="completed"||next==="accepted"||next==="in_progress"||next==="delivered"?"primary":"secondary"),label);b.type="button";b.addEventListener("click",()=>changeOrder(order,next,label,b));buttons.append(b);}
+   if(buttons.childElementCount)card.append(buttons);
+   ordersList.append(card);
+  }
+ }catch(e){ordersList.replaceChildren(el("p","empty-state","No se pudieron cargar los pedidos. Comprueba tu sesión y las políticas de acceso."));orderNotice(e.message,"error");}
+}
+async function init(){
+ try{
+  const user=await UG.api("/auth/v1/user");
+  document.querySelector("[data-user-email]").textContent=user.email||"tu cuenta";
+  profileStatus.textContent="Sesión verificada. Puedes publicar servicios y gestionar pedidos; los pagos permanecen desactivados.";
+  const rows=await UG.api("/rest/v1/profiles?select=role&id=eq."+encodeURIComponent(user.id));
+  if(Array.isArray(rows)&&rows[0]&&["admin","moderator"].includes(rows[0].role)){
+   const link=el("a","button secondary","Abrir centro de moderación");link.href="admin.html";document.querySelector("#admin-entry").append(link);
+  }
+  await loadOrders();
+ }catch(e){profileStatus.textContent="La sesión no pudo verificarse. Inicia sesión nuevamente.";localStorage.removeItem("ug_access_token");}
+}
+document.querySelector("#refresh-orders").addEventListener("click",loadOrders);
+init();
+</script></body></html>

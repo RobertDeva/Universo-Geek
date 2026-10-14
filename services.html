@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Encuentra y ofrece servicios creativos en Universo Geek."><title>Servicios creativos — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="index.html">Inicio</a><a href="membership.html">Membresías</a><a href="dashboard.html">Mi espacio</a><a href="login.html">Entrar</a></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header>
+<!-- MARKETPLACE: catálogo público de servicios aprobados y formulario de publicación. RLS controla qué filas se pueden leer o escribir. -->
+<main class="page-wrap"><span class="eyebrow">MARKETPLACE DE LA COMUNIDAD</span><h1 class="page-title">Talento que sube de nivel.</h1><p class="muted">Encuentra artistas, diseñadores, editores y otros creadores. Las solicitudes se registran en Supabase; no se procesa ningún pago en esta versión.</p>
+<div id="global-message" aria-live="polite"></div>
+<section class="panel"><div class="section-heading"><div><span class="eyebrow">DESCUBRE CREADORES</span><h2>Servicios aprobados</h2></div><p>Las nuevas publicaciones quedan pendientes de moderación antes de aparecer aquí.</p></div><div id="service-list" class="list-grid"><p class="empty-state">Cargando servicios…</p></div></section>
+<section class="panel" id="publish"><span class="eyebrow">COMPARTE TU TALENTO</span><h2>Publica un servicio</h2><p class="muted">Necesitas una cuenta. La publicación se enviará con estado pendiente para revisión; no aparecerá públicamente hasta ser aprobada.</p><div id="publish-message" aria-live="polite"></div><form id="publish-form" class="form-grid"><div class="field"><label for="title">Título del servicio</label><input id="title" maxlength="100" required placeholder="Ej. Ilustración de avatar estilo anime"></div><div class="field"><label for="description">Descripción</label><textarea id="description" maxlength="2000" required placeholder="Explica qué ofreces, qué incluye y el plazo estimado."></textarea></div><div class="field"><label for="category">Categoría</label><select id="category" required><option value="Ilustración">Ilustración</option><option value="Diseño">Diseño</option><option value="Edición">Edición</option><option value="Gaming">Gaming</option><option value="Traducción">Traducción</option><option value="Otros">Otros</option></select></div><div class="list-grid"><div class="field"><label for="price">Precio inicial</label><input id="price" type="number" min="0.01" max="100000" step="0.01" required></div><div class="field"><label for="currency">Moneda</label><select id="currency"><option value="USD">USD</option></select></div></div><button class="button primary" type="submit">Enviar a moderación</button></form></section>
+<section class="panel" id="request-panel" hidden><span class="eyebrow">SOLICITUD DE CONTRATACIÓN</span><h2 id="request-title">Solicitar servicio</h2><p id="request-price" class="muted"></p><p class="notice">Esta solicitud no cobra ni reserva dinero. Acordad los detalles con claridad y no envíes pagos fuera de una vía verificada por la plataforma.</p><div id="request-message" aria-live="polite"></div><form id="request-form" class="form-grid"><input type="hidden" id="request-service-id"><input type="hidden" id="request-seller-id"><input type="hidden" id="request-amount"><input type="hidden" id="request-currency"><div class="field"><label for="brief">Describe lo que necesitas</label><textarea id="brief" maxlength="3000" required placeholder="Detalla el alcance, referencias y fecha límite."></textarea></div><div class="form-actions"><button class="button primary" type="submit">Enviar solicitud</button><button class="button secondary" id="cancel-request" type="button">Cancelar</button></div></form></section>
+</main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek · Plataforma en preparación</small></footer>
+<script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>
+// LÓGICA DE LA PÁGINA: consultas del catálogo, validación de formulario y creación de solicitudes. No calcular ni procesar pagos aquí.
+const list=document.querySelector("#service-list"), globalMsg=document.querySelector("#global-message"), pubMsg=document.querySelector("#publish-message"), reqMsg=document.querySelector("#request-message");
+const show=(el,text,kind="notice")=>{el.className="notice "+kind;el.textContent=text;};
+const escText=(el,value)=>{el.textContent=value??"";};
+async function loadServices(){
+  list.replaceChildren(); const wait=document.createElement("p");wait.className="empty-state";wait.textContent="Cargando servicios…";list.append(wait);
+  try{
+    const rows=await UG.api("/rest/v1/marketplace_services?select=id,user_id,title,description,category,price_amount,currency,created_at&status=eq.approved&order=created_at.desc");
+    list.replaceChildren();
+    if(!Array.isArray(rows)||rows.length===0){const empty=document.createElement("p");empty.className="empty-state";empty.textContent="Todavía no hay servicios aprobados. ¡Puedes ser de los primeros en publicar!";list.append(empty);return;}
+    for(const s of rows){
+      const card=document.createElement("article");card.className="service-card";
+      const badge=document.createElement("span");badge.className="badge";badge.textContent=s.category||"Servicio";
+      const h=document.createElement("h3");h.textContent=s.title;
+      const desc=document.createElement("p");desc.className="muted";desc.textContent=s.description;
+      const price=document.createElement("p");price.innerHTML="";const strong=document.createElement("strong");strong.textContent=Number(s.price_amount).toLocaleString("es-US",{style:"currency",currency:s.currency||"USD"});price.append(strong);
+      const button=document.createElement("button");button.type="button";button.className="button primary";button.textContent="Solicitar servicio";
+      button.addEventListener("click",()=>openRequest(s));
+      card.append(badge,h,desc,price,button);list.append(card);
+    }
+  }catch(e){list.replaceChildren();const empty=document.createElement("p");empty.className="empty-state";empty.textContent="No se pudieron cargar los servicios. Comprueba la configuración de Supabase y vuelve a intentarlo.";list.append(empty);show(globalMsg,e.message,"error");}
+}
+function openRequest(s){
+  if(!UG.token()){location.href="login.html";return;}
+  document.querySelector("#request-panel").hidden=false;
+  document.querySelector("#request-title").textContent="Solicitar: "+s.title;
+  document.querySelector("#request-price").textContent="Precio inicial: "+Number(s.price_amount).toFixed(2)+" "+(s.currency||"USD")+" · El importe final debe acordarse con el creador.";
+  document.querySelector("#request-service-id").value=s.id;
+  document.querySelector("#request-seller-id").value=s.user_id;
+  document.querySelector("#request-amount").value=s.price_amount;
+  document.querySelector("#request-currency").value=s.currency||"USD";
+  reqMsg.textContent="";document.querySelector("#request-panel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelector("#cancel-request").addEventListener("click",()=>{document.querySelector("#request-panel").hidden=true;});
+document.querySelector("#publish-form").addEventListener("submit",async e=>{
+  e.preventDefault();if(!UG.token()){location.href="login.html";return;}
+  const user=UG.user();if(!user?.id)return show(pubMsg,"No se pudo identificar la sesión. Cierra sesión y vuelve a entrar.","error");
+  const btn=e.submitter;btn.disabled=true;
+  try{
+    await UG.api("/rest/v1/marketplace_services",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({user_id:user.id,title:document.querySelector("#title").value.trim(),description:document.querySelector("#description").value.trim(),category:document.querySelector("#category").value,price_amount:Number(document.querySelector("#price").value),currency:document.querySelector("#currency").value,status:"pending"})});
+    e.target.reset();show(pubMsg,"Tu servicio se envió a moderación. No será público hasta que lo apruebe el equipo.","success");
+  }catch(err){show(pubMsg,err.message||"No se pudo enviar la publicación.","error");}finally{btn.disabled=false;}
+});
+document.querySelector("#request-form").addEventListener("submit",async e=>{
+  e.preventDefault();if(!UG.token()){location.href="login.html";return;}
+  const user=UG.user();if(!user?.id)return show(reqMsg,"No se pudo identificar la sesión. Inicia sesión de nuevo.","error");
+  const btn=e.submitter;btn.disabled=true;
+  try{
+    await UG.api("/rest/v1/service_orders",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({service_id:document.querySelector("#request-service-id").value,buyer_id:user.id,seller_id:document.querySelector("#request-seller-id").value,brief:document.querySelector("#brief").value.trim(),agreed_amount:Number(document.querySelector("#request-amount").value),currency:document.querySelector("#request-currency").value,status:"requested"})});
+    e.target.reset();show(reqMsg,"Solicitud enviada. El creador podrá responder desde las herramientas de pedidos cuando estén disponibles. No se ha realizado ningún pago.","success");
+  }catch(err){show(reqMsg,err.message||"No se pudo crear la solicitud. Comprueba que el servicio siga aprobado.","error");}finally{btn.disabled=false;}
+});
+loadServices();
+</script></body></html>

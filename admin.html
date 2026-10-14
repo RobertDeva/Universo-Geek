@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Herramientas seguras de moderación de Universo Geek."><title>Moderación — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="dashboard.html">Mi espacio</a><a href="services.html">Marketplace</a><a href="membership.html">Membresías</a><button class="button secondary" data-signout>Salir</button></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header>
+<!-- MODERACIÓN: esta interfaz es solo una herramienta de conveniencia; las funciones SQL y RLS son la barrera de seguridad real. -->
+<main class="page-wrap"><span class="eyebrow">HERRAMIENTAS INTERNAS</span><h1 class="page-title">Centro de moderación</h1><p class="muted">Las decisiones se envían a funciones de base de datos con verificación de rol. Los pagos y los cambios de roles no se administran desde esta página.</p>
+<div id="status" class="notice" aria-live="polite">Verificando identidad y permisos…</div>
+<section id="moderation-ui" hidden>
+  <section class="panel"><div class="section-heading"><div><span class="eyebrow">MARKETPLACE</span><h2>Servicios pendientes</h2></div><button class="button secondary" id="refresh-services" type="button">Actualizar</button></div><div id="services-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
+  <section class="panel"><div class="section-heading"><div><span class="eyebrow">AFILIADOS</span><h2>Anuncios pendientes</h2></div><button class="button secondary" id="refresh-ads" type="button">Actualizar</button></div><div id="ads-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
+  <!-- FEEDBACK: solo el administrador puede leer los comentarios; la base de datos aplica RLS. -->
+  <section class="panel" id="feedback-panel" hidden>
+    <div class="section-heading"><div><span class="eyebrow">VOZ DE LA COMUNIDAD</span><h2>Feedback de usuarios</h2></div><button class="button secondary" id="refresh-feedback" type="button">Actualizar</button></div>
+    <p class="muted">Lee sugerencias y reportes y actualiza su estado de seguimiento. No copies información personal fuera del sistema.</p>
+    <div id="feedback-stats" class="feature-grid" aria-live="polite"><p class="empty-state">Cargando estadísticas…</p></div>
+    <div id="feedback-queue" class="list-grid"><p class="empty-state">Cargando comentarios…</p></div>
+  </section>
+  <section class="panel"><h2>Pagos y membresías</h2><p class="notice">Las acciones sobre pagos están desactivadas hasta que QvaPay apruebe la cuenta comercial y se pruebe la verificación de transacciones. No cambies estados de pago manualmente desde el navegador.</p></section>
+</section>
+</main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek</small></footer>
+<script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>
+// COLAS DE MODERACIÓN: muestra publicaciones pendientes y llama a RPCs que comprueban el rol y registran la auditoría.
+UG.requireAuth();
+const statusBox=document.querySelector("#status"), ui=document.querySelector("#moderation-ui");
+const serviceQueue=document.querySelector("#services-queue"), adsQueue=document.querySelector("#ads-queue");
+function noteBox(text,kind="notice"){statusBox.className="notice "+kind;statusBox.textContent=text;}
+function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;}
+function renderQueue(container,rows,type){
+ container.replaceChildren();
+ if(!rows.length){container.append(make("p","empty-state","No hay elementos pendientes de revisión."));return;}
+ for(const row of rows){
+  const card=make("article","service-card");
+  card.append(make("span","badge",type==="service"?(row.category||"Servicio"):"Anuncio de afiliado"));
+  card.append(make("h3","",row.title));
+  card.append(make("p","muted",row.description));
+  if(type==="service")card.append(make("p","",Number(row.price_amount).toLocaleString("es-US",{style:"currency",currency:row.currency||"USD"})));
+  else {const link=make("a","","Abrir destino ↗");link.href=row.destination_url;link.target="_blank";link.rel="noopener noreferrer";card.append(link,make("p","muted","CTA: "+(row.cta||"—")));}
+  const note=make("textarea","");note.maxLength=500;note.placeholder="Nota de moderación (opcional, máximo 500 caracteres)";note.setAttribute("aria-label","Nota de moderación");note.style.width="100%";note.style.minHeight="76px";note.style.margin="12px 0";note.style.background="var(--bg)";note.style.color="var(--text)";note.style.border="1px solid var(--line)";note.style.borderRadius="10px";note.style.padding="10px";card.append(note);
+  const actions=make("div","form-actions");
+  for(const [label,next,cls] of [["Aprobar","approved","primary"],["Rechazar","rejected","secondary"],["Pausar","paused","secondary"]]){
+    const button=make("button","button "+cls,label);button.type="button";
+    button.addEventListener("click",async()=>{
+      if(!confirm(label+" este elemento?"))return;
+      button.disabled=true;
+      try{
+        const endpoint=type==="service"?"moderate_marketplace_service":"moderate_affiliate_ad";
+        const idKey=type==="service"?"target_service":"target_ad";
+        await UG.api("/rest/v1/rpc/"+endpoint,{method:"POST",body:JSON.stringify({[idKey]:row.id,new_status:next,note:note.value.trim()||null})});
+        noteBox("Decisión guardada y registrada en auditoría.","success");
+        await loadQueues();
+      }catch(e){noteBox("No se pudo guardar la decisión: "+e.message,"error");}
+      finally{button.disabled=false;}
+    });
+    actions.append(button);
+  }
+  card.append(actions);container.append(card);
+ }
+}
+async function loadQueues(){
+ serviceQueue.replaceChildren(make("p","empty-state","Cargando servicios…"));
+ adsQueue.replaceChildren(make("p","empty-state","Cargando anuncios…"));
+ try{
+  const [services,ads]=await Promise.all([
+   UG.api("/rest/v1/marketplace_services?select=id,user_id,title,description,category,price_amount,currency,status,created_at&status=eq.pending&order=created_at.asc"),
+   UG.api("/rest/v1/affiliate_ads?select=id,user_id,title,description,destination_url,cta,status,created_at&status=eq.pending&order=created_at.asc")
+  ]);
+  renderQueue(serviceQueue,Array.isArray(services)?services:[],"service");
+  renderQueue(adsQueue,Array.isArray(ads)?ads:[],"ad");
+ }catch(e){serviceQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los servicios."));adsQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los anuncios."));noteBox("Error al cargar las colas de moderación: "+e.message,"error");}
+}
+async function loadFeedbackStats(){
+ const box=document.querySelector("#feedback-stats");
+ if(!box)return;
+ box.replaceChildren(make("p","empty-state","Cargando estadísticas…"));
+ try{
+  const data=await UG.api("/rest/v1/rpc/admin_site_feedback_stats",{method:"POST",body:"{}"});
+  box.replaceChildren();
+  const values=[
+   ["Comentarios recibidos",Number(data.total)||0],
+   ["Pendientes de seguimiento",Number(data.open)||0],
+   ["Últimos 30 días",Number(data.last_30_days)||0],
+   ["Valoración media",data.average_rating==null?"Sin valoraciones":Number(data.average_rating).toFixed(2)+" / 5"]
+  ];
+  for(const [title,value] of values){
+   const card=make("article","feature-card");
+   card.append(make("p","muted",title),make("h3","",String(value)));
+   box.append(card);
+  }
+ }catch{
+  box.replaceChildren(make("p","empty-state","No se pudieron cargar las estadísticas."));
+ }
+}
+async function loadFeedback(){
+ const container=document.querySelector("#feedback-queue");
+ if(!container)return;
+ await loadFeedbackStats();
+ container.replaceChildren(make("p","empty-state","Cargando feedback…"));
+ try{
+  const rows=await UG.api("/rest/v1/site_feedback?select=id,category,rating,message,contact_email,page_path,status,created_at&order=created_at.desc&limit=100");
+  container.replaceChildren();
+  if(!Array.isArray(rows)||!rows.length){container.append(make("p","empty-state","Todavía no hay comentarios."));return;}
+  for(const row of rows){
+   const card=make("article","service-card");
+   const labels={question:"Pregunta",bug:"Error",suggestion:"Sugerencia",content:"Contenido",accessibility:"Accesibilidad",other:"Otro"};
+   card.append(make("span","badge",(labels[row.category]||row.category)+" · "+row.status));
+   card.append(make("p","muted",new Date(row.created_at).toLocaleString()));
+   if(row.rating)card.append(make("p","","Valoración: "+row.rating+"/5"));
+   card.append(make("p","",row.message));
+   if(row.page_path)card.append(make("p","muted","Página: "+row.page_path));
+   if(row.contact_email)card.append(make("p","muted","Contacto facilitado: "+row.contact_email));
+   const label=make("label","","Estado del seguimiento");
+   const select=document.createElement("select");
+   [["new","Nuevo"],["reviewing","En revisión"],["planned","Planificado"],["done","Resuelto"],["closed","Cerrado"]].forEach(([value,title])=>{const option=make("option","",title);option.value=value;option.selected=value===row.status;select.append(option);});
+   label.append(select);
+   const save=make("button","button secondary","Guardar estado");save.type="button";
+   save.addEventListener("click",async()=>{
+    save.disabled=true;
+    try{
+     await UG.api("/rest/v1/site_feedback?id=eq."+encodeURIComponent(row.id),{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({status:select.value})});
+     noteBox("Estado del comentario actualizado.","success");
+     await loadFeedback();
+    }catch(e){noteBox("No se pudo actualizar el comentario. Comprueba el rol de administrador y las políticas RLS.","error");save.disabled=false;}
+   });
+   card.append(label,save);container.append(card);
+  }
+ }catch(e){container.replaceChildren(make("p","empty-state","No se pudo cargar el feedback. Esta sección requiere rol de administrador."));}
+}
+async function init(){
+ const user=UG.user();
+ if(!user?.id){noteBox("No se pudo identificar la sesión. Vuelve a iniciar sesión.","error");return;}
+ try{
+  const rows=await UG.api("/rest/v1/profiles?select=id,role,display_name&id=eq."+encodeURIComponent(user.id));
+  const profile=Array.isArray(rows)?rows[0]:null;
+  if(!profile||!["admin","moderator"].includes(profile.role)){noteBox("Acceso denegado. Esta sección requiere rol admin o moderator.","error");return;}
+  noteBox("Sesión verificada · rol: "+profile.role+". Las acciones de moderación se registran en auditoría.","success");
+  ui.hidden=false;await loadQueues();if(profile.role==="admin"){document.querySelector("#feedback-panel").hidden=false;await loadFeedback();}
+ }catch(e){noteBox("No se pudo verificar el rol. Comprueba la sesión y las políticas RLS.","error");}
+}
+document.querySelector("#refresh-services").addEventListener("click",loadQueues);
+document.querySelector("#refresh-ads").addEventListener("click",loadQueues);
+document.querySelector("#refresh-feedback")?.addEventListener("click",loadFeedback);
+init();
+</script></body></html>

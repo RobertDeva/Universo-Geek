@@ -1,0 +1,9 @@
+# Funciones de pago no desplegadas. Ver docs/qvapay/SETUP.md antes de habilitar.
+[functions.qvapay-create-invoice]
+verify_jwt = true
+
+[functions.qvapay-check-status]
+verify_jwt = true
+
+[functions.qvapay-webhook]
+verify_jwt = false
