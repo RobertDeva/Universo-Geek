@@ -1,4 +1,3 @@
--- Applied to Supabase project khadcbgzziuwaxwptftw on 2026-10-14.
 begin;
 
 -- Remove browser access to administrative audit records except authenticated read
