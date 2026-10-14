@@ -12,6 +12,7 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - La política RLS de la base de datos comprueba que el precio y la moneda de una solicitud coincidan con el anuncio aprobado.
 - Borradores de privacidad y cookies.
 - Centro de moderación funcional para servicios y anuncios de afiliados, con verificación de rol y RPCs seguras que registran las decisiones en auditoría.
+- Asistente local de FAQ en todas las páginas, con formulario de feedback, tabla `site_feedback` protegida por RLS y bandeja de seguimiento para administradores.
 - Gestión de roles y transacciones financieras continúa restringida a administradores/backend; la página no permite activar pagos.
 - Cabeceras iniciales de seguridad, guía de Cloudflare Pages e informe de seguridad de Supabase.
 
@@ -30,9 +31,15 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - La moderación de servicios y anuncios ya está conectada; el panel de administración general para usuarios, roles y transacciones todavía no está completo.
 - El checkout está desactivado. No se crean facturas, no se aceptan pagos y no se activan membresías pagadas.
 - Las funciones Edge de QvaPay no se han desplegado; falta la cuenta comercial y confirmar el formato real del webhook.
-- Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente.
+- Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente. El feedback del asistente sí está conectado.
 - Los correos con dominio `.example` son marcadores de posición y deben reemplazarse.
 - La política de privacidad/cookies es un borrador y requiere datos del operador y revisión legal.
+
+## Asistente y feedback
+- Las respuestas están definidas manualmente en `assets/js/help-bot.js`; no usa IA externa ni aprende automáticamente.
+- Los comentarios públicos solo pueden insertarse con estado `new`; solo administradores pueden leerlos y cambiar el estado.
+- El formulario incluye validaciones de longitud y honeypot básico. Antes de lanzamiento público, evaluar rate limiting de servidor/CAPTCHA accesible.
+- No se ejecutaron pruebas reales desde navegador; se verificó la sintaxis de JavaScript y los privilegios efectivos de la tabla.
 
 ## Configuración de Supabase pendiente
 1. Agregar solo las URL de redirección necesarias para el entorno de prueba.
