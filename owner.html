@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="referrer" content="same-origin">
+  <title>Centro privado · Universo Geek</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/owner.css">
+</head>
+<body class="owner-body">
+  <main class="owner-shell">
+    <header class="owner-header">
+      <a class="owner-brand" href="index.html" aria-label="Volver a Universo Geek">🎮 Universo Geek</a>
+      <span class="owner-private-label">🔒 Centro privado</span>
+    </header>
+    <section class="owner-intro">
+      <p class="owner-eyebrow">CONTROL DEL PROPIETARIO</p>
+      <h1>Tu centro de control</h1>
+      <p>Finanzas, comunidad e informes privados, con aprobaciones bajo tu control.</p>
+      <p id="owner-status" class="owner-status" role="status" aria-live="polite">Comprobando autorización…</p>
+    </section>
+    <section id="owner-content" hidden>
+      <div class="owner-grid">
+        <article class="owner-card">
+          <span class="owner-card-icon" aria-hidden="true">💰</span>
+          <h2>Finanzas</h2>
+          <p>Preparado para conciliar pedidos, cobros verificados, gastos y comisiones sin confundir ingresos con ventas pendientes.</p>
+          <span class="owner-tag">Primera fase: solo lectura</span>
+        </article>
+        <article class="owner-card">
+          <span class="owner-card-icon" aria-hidden="true">👥</span>
+          <h2>Comunidad</h2>
+          <p>Informes exportables de membresías, actividad y resultados de los canales conectados.</p>
+          <span class="owner-tag">Integraciones pendientes</span>
+        </article>
+        <article class="owner-card">
+          <span class="owner-card-icon" aria-hidden="true">🧠</span>
+          <h2>IA financiera local</h2>
+          <p>Analiza informes guardados en tu ordenador sin enviar datos a una IA en la nube.</p>
+          <span class="owner-tag">No conectada todavía</span>
+        </article>
+        <article class="owner-card">
+          <span class="owner-card-icon" aria-hidden="true">📣</span>
+          <h2>Redes sociales</h2>
+          <p>Preparación de publicaciones, calendario y automatizaciones mediante integraciones oficiales.</p>
+          <span class="owner-tag">Requiere configurar APIs</span>
+        </article>
+      </div>
+      <section class="owner-notice">
+        <h2>Acciones y aprobaciones</h2>
+        <p>Las tareas rutinarias podrán automatizarse después de probarlas. Las acciones sensibles seguirán requiriendo tu aprobación. Esta versión no procesa pagos ni ejecuta publicaciones.</p>
+      </section>
+      <button id="owner-signout" class="owner-button" type="button">Cerrar sesión</button>
+    </section>
+    <section id="owner-denied" class="owner-denied" hidden>
+      <h2>Acceso no autorizado</h2>
+      <p>Esta página solo está disponible para la cuenta propietaria autorizada. No se han cargado datos privados.</p>
+      <a href="login.html">Volver al inicio de sesión</a>
+    </section>
+    <footer class="owner-footer">Acceso restringido · Universo Geek</footer>
+  </main>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages/owner.js"></script>
+</body>
+</html>
