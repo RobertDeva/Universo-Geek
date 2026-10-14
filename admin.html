@@ -3,6 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Herramientas seguras de moderación de Universo Geek."><title>Moderación — Universo Geek</title><link rel="stylesheet" href="assets/css/style.css"></head>
 <body>
 <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">UG</span><span>Universo <b>Geek</b></span></a><nav class="nav"><a href="dashboard.html">Mi espacio</a><a href="services.html">Marketplace</a><a href="membership.html">Membresías</a><button class="button secondary" data-signout>Salir</button></nav><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button></header>
+<!-- MODERACIÓN: esta interfaz es solo una herramienta de conveniencia; las funciones SQL y RLS son la barrera de seguridad real. -->
 <main class="page-wrap"><span class="eyebrow">HERRAMIENTAS INTERNAS</span><h1 class="page-title">Centro de moderación</h1><p class="muted">Las decisiones se envían a funciones de base de datos con verificación de rol. Los pagos y los cambios de roles no se administran desde esta página.</p>
 <div id="status" class="notice" aria-live="polite">Verificando identidad y permisos…</div>
 <section id="moderation-ui" hidden>
@@ -12,6 +13,7 @@
 </section>
 </main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek</small></footer>
 <script src="assets/js/config.js"></script><script src="assets/js/app.js"></script><script>
+// COLAS DE MODERACIÓN: muestra publicaciones pendientes y llama a RPCs que comprueban el rol y registran la auditoría.
 UG.requireAuth();
 const statusBox=document.querySelector("#status"), ui=document.querySelector("#moderation-ui");
 const serviceQueue=document.querySelector("#services-queue"), adsQueue=document.querySelector("#ads-queue");
