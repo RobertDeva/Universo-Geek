@@ -1,0 +1,8 @@
+-- Environment-specific bootstrap placeholder.
+-- In the original Supabase project, this migration promoted the owner's existing
+-- profile to admin by matching an account email. That identity-specific value is
+-- intentionally not committed to the repository.
+--
+-- For a new environment, create the owner account in Supabase Auth and follow
+-- docs/ADMIN-BOOTSTRAP.md to promote that account once, using its Auth user UUID.
+-- This file preserves the historical migration version/name for repository parity.
