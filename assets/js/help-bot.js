@@ -147,20 +147,19 @@
       try {
         const user=window.UG?.user?.();
         const payload={
-          user_id:user?.id || null,
           category:category.value,
           rating:rating.value ? Number(rating.value) : null,
           message:text,
           contact_email:email.value.trim() || null,
           page_path:location.pathname.slice(0,300),
-          status:"new"
+          website:honeyInput.value
         };
-        await window.UG.api("/rest/v1/site_feedback",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify(payload)});
-        feedbackStatus.textContent="¡Gracias! Tu comentario quedó registrado para revisión.";
+        await window.UG.api("/functions/v1/submit-site-feedback",{method:"POST",body:JSON.stringify(payload)});
+        feedbackStatus.textContent="Gracias. Tu comentario se ha enviado para revisión; no hay un plazo de respuesta prometido.";
         feedback.reset();
         say("Gracias por compartir tu feedback. El equipo podrá revisarlo para priorizar mejoras.");
       } catch(error) {
-        feedbackStatus.textContent="No se pudo enviar ahora. Comprueba la conexión e inténtalo de nuevo.";
+        feedbackStatus.textContent=error?.message?.includes("429") ? "Has alcanzado el límite de envíos. Inténtalo más tarde." : "No se pudo enviar ahora. Comprueba la conexión e inténtalo de nuevo.";
       } finally {
         send.disabled=false; send.textContent="Enviar comentario";
       }
