@@ -52,7 +52,7 @@ En Supabase Auth, antes de probar:
 2. Configura correo SMTP y recuperación de cuenta.
 3. Habilita la protección contra contraseñas filtradas.
 4. Prueba las políticas RLS con usuarios de distintos roles.
-5. Activa la protección contra contraseñas filtradas en Authentication → Security and Protection; sigue pendiente según el asesor de seguridad.
+5. Revisa la protección contra contraseñas filtradas en Authentication → Security and Protection; Supabase la ofrece en Pro y superiores, así que en Free puede requerir una actualización de plan. No cambies de plan sin revisar el coste.
 
 No ejecutar automáticamente los SQL incluidos en paquetes anteriores: comparar cada sentencia con las migraciones reales del proyecto y crear una copia de seguridad antes de cualquier cambio.
 
