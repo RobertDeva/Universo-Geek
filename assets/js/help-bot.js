@@ -14,8 +14,8 @@
   // Respuestas redactadas a partir de las páginas y los flujos actuales del repositorio.
   // No añadir afirmaciones hasta verificarlas en el código o en Supabase.
   const FAQ = [
-    {keys:["crear cuenta","registrarme","registro","iniciar sesion","entrar","login","contrasena","recuperar contraseña"],title:"Cuenta",answer:"La página Entrar permite iniciar sesión, crear una cuenta con correo y contraseña y solicitar la recuperación de contraseña. Si la confirmación por correo está activada, revisa también la bandeja de spam."},
-    {keys:["servicios aprobados","publicar servicio","publicar un servicio","solicitar servicio","marketplace","contratar un servicio"],title:"Servicios",answer:"La página Servicios muestra los servicios aprobados y permite iniciar sesión para publicar o enviar una solicitud. La solicitud no cobra ni reserva dinero; el marketplace no procesa pagos en esta versión."},
+    {keys:["cuenta","crear cuenta","registrarme","registro","iniciar sesion","entrar","login","contrasena","recuperar contraseña"],title:"Cuenta",answer:"La página Entrar permite iniciar sesión, crear una cuenta con correo y contraseña y solicitar la recuperación de contraseña. Si la confirmación por correo está activada, revisa también la bandeja de spam."},
+    {keys:["servicio","servicios","servicios aprobados","publicar servicio","publicar un servicio","solicitar servicio","marketplace","contratar un servicio"],title:"Servicios",answer:"La página Servicios muestra los servicios aprobados y permite iniciar sesión para publicar o enviar una solicitud. La solicitud no cobra ni reserva dinero; el marketplace no procesa pagos en esta versión."},
     {keys:["membresias","planes","geek","creator","otaku pro"],title:"Membresías",answer:"La página Membresías muestra las opciones Geek, Creator y Otaku Pro. Son informativas en esta versión: el checkout está desactivado y no se puede pagar ni activar una membresía desde el sitio."},
     {keys:["qvapay","pagos","pagar","criptomonedas","bitcoin","btc","ethereum","eth","solana","bnb","checkout","transaccion"],title:"Pagos",answer:"Los pagos reales están desactivados. La integración comercial de QvaPay sigue en preparación y depende de la cuenta comercial y de la verificación del backend. No envíes dinero ni criptomonedas; el bot no puede confirmar pagos."},
     {keys:["feedback","sugerencia","enviar comentario","reportar error","problema","pregunta sin respuesta"],title:"Feedback",answer:"Puedes enviar una pregunta o sugerencia con el formulario de este asistente. El correo es opcional. Los comentarios quedan para revisión administrativa; no hay un plazo de respuesta prometido. No incluyas contraseñas, claves privadas ni datos bancarios."},
@@ -121,7 +121,7 @@
         score: item.keys.reduce((n,key) => n + (clean.includes(norm(key)) ? Math.max(1,norm(key).split(" ").length) : 0), 0)
       })).filter(result => result.score > 0).sort((a,b) => b.score-a.score);
       if (!matches.length) return "No encuentro una respuesta confirmada para esa pregunta en la documentación actual del sitio. No voy a adivinar. Envíala como «Pregunta sin respuesta» mediante el formulario para que el equipo pueda revisarla.";
-      if (matches.length > 1 && matches[0].score === matches[1].score) return "Tu pregunta puede referirse a más de una función y no quiero darte información incorrecta. Reformúlala sobre un solo tema o envíala al equipo mediante el formulario.";
+      if (matches.length > 1 && matches[0].score < matches[1].score + 2) return "Tu pregunta puede referirse a más de una función y no quiero darte información incorrecta. Reformúlala sobre un solo tema o envíala al equipo mediante el formulario.";
       return matches[0].item.answer;
     }
     function ask(text) {
@@ -159,7 +159,7 @@
         feedback.reset();
         say("Gracias por compartir tu feedback. El equipo podrá revisarlo para priorizar mejoras.");
       } catch(error) {
-        feedbackStatus.textContent=error?.message?.includes("429") ? "Has alcanzado el límite de envíos. Inténtalo más tarde." : "No se pudo enviar ahora. Comprueba la conexión e inténtalo de nuevo.";
+        feedbackStatus.textContent=error?.message==="rate_limited" ? "Has alcanzado el límite de envíos. Inténtalo más tarde." : "No se pudo enviar ahora. Comprueba la conexión e inténtalo de nuevo.";
       } finally {
         send.disabled=false; send.textContent="Enviar comentario";
       }
