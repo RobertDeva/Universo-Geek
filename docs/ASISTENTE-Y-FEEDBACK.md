@@ -43,3 +43,7 @@ Si la bandeja no carga, revisa:
 ## Probarlo sin publicar
 
 Abre el proyecto en un servidor local sencillo, inicia sesión con un usuario normal y envía un comentario de prueba. Después inicia sesión con una cuenta administradora y comprueba que aparece en la bandeja. No uses datos personales reales durante la prueba. Borra los comentarios de prueba desde un proceso administrativo autorizado si ya no se necesitan.
+
+
+## Estado de veracidad
+El asistente debe responder únicamente con hechos comprobados en las páginas y flujos implementados. Si una pregunta no coincide con una respuesta documentada, debe admitir que no conoce la respuesta y ofrecer el formulario de feedback. El checkout de membresías permanece desactivado mientras la cuenta comercial de QvaPay está pendiente. No publicar el sitio durante esta tarea.
