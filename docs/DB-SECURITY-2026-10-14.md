@@ -18,6 +18,7 @@ Estado: cambios de base de datos aplicados y comprobados. Sitio no publicado. No
 11. Se separaron los roles: `private.is_admin()` solo reconoce administradores; se añadió `private.is_moderator_or_admin()` para moderación.
 12. El cambio de roles queda protegido para que un moderador no pueda promoverse ni promover a otro usuario a administrador.
 13. Se añadieron RPCs autenticadas `moderate_marketplace_service` y `moderate_affiliate_ad`, que solo permiten cambiar el estado de moderación, registran el revisor y escriben en la auditoría.
+14. Se corrigió el trigger del ciclo de pedidos: el vendedor puede aceptar, iniciar, entregar o cancelar según el estado; el comprador puede cancelar o disputar solicitudes y completar/disputar pedidos entregados. El trigger valida cada transición.
 
 ## Verificación posterior
 
@@ -52,6 +53,7 @@ Las migraciones aplicadas en esta sesión están versionadas en `supabase/migrat
 - `20261014081752_secure_client_writes_and_optimize_rls.sql`
 - `20261014081901_validate_marketplace_order_price_against_service.sql`
 - `20261014082608_separate_admin_and_moderator_permissions.sql`
+- `20261014082807_align_service_order_transition_lifecycle.sql`
 
 Las migraciones históricas están sincronizadas en `supabase/migrations/`, incluyendo un marcador saneado para `bootstrap_initial_site_admin` que no almacena el correo del propietario. Para configurar el administrador en un entorno nuevo, sigue `docs/ADMIN-BOOTSTRAP.md`.
 
