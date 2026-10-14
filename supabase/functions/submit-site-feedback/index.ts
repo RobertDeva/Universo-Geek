@@ -29,9 +29,16 @@ Deno.serve(async (req: Request) => {
     return response(503, { ok: false, error: "feedback_unavailable" });
   }
 
+  if (!req.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+    return response(415, { ok: false, error: "json_required" });
+  }
   let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    const raw = await req.text();
+    if (raw.length > 10000) return response(413, { ok: false, error: "payload_too_large" });
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid_body");
+    body = parsed as Record<string, unknown>;
   } catch {
     return response(400, { ok: false, error: "invalid_json" });
   }
