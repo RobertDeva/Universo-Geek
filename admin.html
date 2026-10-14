@@ -9,6 +9,12 @@
 <section id="moderation-ui" hidden>
   <section class="panel"><div class="section-heading"><div><span class="eyebrow">MARKETPLACE</span><h2>Servicios pendientes</h2></div><button class="button secondary" id="refresh-services" type="button">Actualizar</button></div><div id="services-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
   <section class="panel"><div class="section-heading"><div><span class="eyebrow">AFILIADOS</span><h2>Anuncios pendientes</h2></div><button class="button secondary" id="refresh-ads" type="button">Actualizar</button></div><div id="ads-queue" class="list-grid"><p class="empty-state">Cargando…</p></div></section>
+  <!-- FEEDBACK: solo el administrador puede leer los comentarios; la base de datos aplica RLS. -->
+  <section class="panel" id="feedback-panel" hidden>
+    <div class="section-heading"><div><span class="eyebrow">VOZ DE LA COMUNIDAD</span><h2>Feedback de usuarios</h2></div><button class="button secondary" id="refresh-feedback" type="button">Actualizar</button></div>
+    <p class="muted">Lee sugerencias y reportes y actualiza su estado de seguimiento. No copies información personal fuera del sistema.</p>
+    <div id="feedback-queue" class="list-grid"><p class="empty-state">Cargando comentarios…</p></div>
+  </section>
   <section class="panel"><h2>Pagos y membresías</h2><p class="notice">Las acciones sobre pagos están desactivadas hasta que QvaPay apruebe la cuenta comercial y se pruebe la verificación de transacciones. No cambies estados de pago manualmente desde el navegador.</p></section>
 </section>
 </main><footer class="footer"><a href="privacy.html">Privacidad</a><a href="cookies.html">Cookies</a><small>© Universo Geek</small></footer>
@@ -62,6 +68,40 @@ async function loadQueues(){
   renderQueue(adsQueue,Array.isArray(ads)?ads:[],"ad");
  }catch(e){serviceQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los servicios."));adsQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los anuncios."));noteBox("Error al cargar las colas de moderación: "+e.message,"error");}
 }
+async function loadFeedback(){
+ const container=document.querySelector("#feedback-queue");
+ if(!container)return;
+ container.replaceChildren(make("p","empty-state","Cargando feedback…"));
+ try{
+  const rows=await UG.api("/rest/v1/site_feedback?select=id,category,rating,message,contact_email,page_path,status,created_at&order=created_at.desc&limit=100");
+  container.replaceChildren();
+  if(!Array.isArray(rows)||!rows.length){container.append(make("p","empty-state","Todavía no hay comentarios."));return;}
+  for(const row of rows){
+   const card=make("article","service-card");
+   const labels={question:"Pregunta",bug:"Error",suggestion:"Sugerencia",content:"Contenido",accessibility:"Accesibilidad",other:"Otro"};
+   card.append(make("span","badge",(labels[row.category]||row.category)+" · "+row.status));
+   card.append(make("p","muted",new Date(row.created_at).toLocaleString()));
+   if(row.rating)card.append(make("p","","Valoración: "+row.rating+"/5"));
+   card.append(make("p","",row.message));
+   if(row.page_path)card.append(make("p","muted","Página: "+row.page_path));
+   if(row.contact_email)card.append(make("p","muted","Contacto facilitado: "+row.contact_email));
+   const label=make("label","","Estado del seguimiento");
+   const select=document.createElement("select");
+   [["new","Nuevo"],["reviewing","En revisión"],["planned","Planificado"],["done","Resuelto"],["closed","Cerrado"]].forEach(([value,title])=>{const option=make("option","",title);option.value=value;option.selected=value===row.status;select.append(option);});
+   label.append(select);
+   const save=make("button","button secondary","Guardar estado");save.type="button";
+   save.addEventListener("click",async()=>{
+    save.disabled=true;
+    try{
+     await UG.api("/rest/v1/site_feedback?id=eq."+encodeURIComponent(row.id),{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({status:select.value})});
+     noteBox("Estado del comentario actualizado.","success");
+     await loadFeedback();
+    }catch(e){noteBox("No se pudo actualizar el comentario. Comprueba el rol de administrador y las políticas RLS.","error");save.disabled=false;}
+   });
+   card.append(label,save);container.append(card);
+  }
+ }catch(e){container.replaceChildren(make("p","empty-state","No se pudo cargar el feedback. Esta sección requiere rol de administrador."));}
+}
 async function init(){
  const user=UG.user();
  if(!user?.id){noteBox("No se pudo identificar la sesión. Vuelve a iniciar sesión.","error");return;}
@@ -70,10 +110,11 @@ async function init(){
   const profile=Array.isArray(rows)?rows[0]:null;
   if(!profile||!["admin","moderator"].includes(profile.role)){noteBox("Acceso denegado. Esta sección requiere rol admin o moderator.","error");return;}
   noteBox("Sesión verificada · rol: "+profile.role+". Las acciones de moderación se registran en auditoría.","success");
-  ui.hidden=false;await loadQueues();
+  ui.hidden=false;await loadQueues();if(profile.role==="admin"){document.querySelector("#feedback-panel").hidden=false;await loadFeedback();}
  }catch(e){noteBox("No se pudo verificar el rol. Comprueba la sesión y las políticas RLS.","error");}
 }
 document.querySelector("#refresh-services").addEventListener("click",loadQueues);
 document.querySelector("#refresh-ads").addEventListener("click",loadQueues);
+document.querySelector("#refresh-feedback")?.addEventListener("click",loadFeedback);
 init();
 </script></body></html>
