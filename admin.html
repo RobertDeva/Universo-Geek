@@ -13,6 +13,7 @@
   <section class="panel" id="feedback-panel" hidden>
     <div class="section-heading"><div><span class="eyebrow">VOZ DE LA COMUNIDAD</span><h2>Feedback de usuarios</h2></div><button class="button secondary" id="refresh-feedback" type="button">Actualizar</button></div>
     <p class="muted">Lee sugerencias y reportes y actualiza su estado de seguimiento. No copies información personal fuera del sistema.</p>
+    <div id="feedback-stats" class="feature-grid" aria-live="polite"><p class="empty-state">Cargando estadísticas…</p></div>
     <div id="feedback-queue" class="list-grid"><p class="empty-state">Cargando comentarios…</p></div>
   </section>
   <section class="panel"><h2>Pagos y membresías</h2><p class="notice">Las acciones sobre pagos están desactivadas hasta que QvaPay apruebe la cuenta comercial y se pruebe la verificación de transacciones. No cambies estados de pago manualmente desde el navegador.</p></section>
@@ -68,9 +69,32 @@ async function loadQueues(){
   renderQueue(adsQueue,Array.isArray(ads)?ads:[],"ad");
  }catch(e){serviceQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los servicios."));adsQueue.replaceChildren(make("p","empty-state","No se pudieron cargar los anuncios."));noteBox("Error al cargar las colas de moderación: "+e.message,"error");}
 }
+async function loadFeedbackStats(){
+ const box=document.querySelector("#feedback-stats");
+ if(!box)return;
+ box.replaceChildren(make("p","empty-state","Cargando estadísticas…"));
+ try{
+  const data=await UG.api("/rest/v1/rpc/admin_site_feedback_stats",{method:"POST",body:"{}"});
+  box.replaceChildren();
+  const values=[
+   ["Comentarios recibidos",Number(data.total)||0],
+   ["Pendientes de seguimiento",Number(data.open)||0],
+   ["Últimos 30 días",Number(data.last_30_days)||0],
+   ["Valoración media",data.average_rating==null?"Sin valoraciones":Number(data.average_rating).toFixed(2)+" / 5"]
+  ];
+  for(const [title,value] of values){
+   const card=make("article","feature-card");
+   card.append(make("p","muted",title),make("h3","",String(value)));
+   box.append(card);
+  }
+ }catch{
+  box.replaceChildren(make("p","empty-state","No se pudieron cargar las estadísticas."));
+ }
+}
 async function loadFeedback(){
  const container=document.querySelector("#feedback-queue");
  if(!container)return;
+ await loadFeedbackStats();
  container.replaceChildren(make("p","empty-state","Cargando feedback…"));
  try{
   const rows=await UG.api("/rest/v1/site_feedback?select=id,category,rating,message,contact_email,page_path,status,created_at&order=created_at.desc&limit=100");
