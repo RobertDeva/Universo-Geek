@@ -6,6 +6,7 @@ Plataforma en preparación para comunidad gamer, anime, manga y manhwa, enfocada
 
 La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audit/rebuild-2026-10-14`; **no se ha publicado ni desplegado el sitio**.
 
+- [Guía para editar el código manualmente](docs/GUIA-CODIGO-HUMANO.md)
 - [Auditoría técnica](AUDITORIA-TECNICA-2026-10-14.md)
 - [Revisión del paquete anterior y riesgos de pago](REVISION-PAQUETE.md)
 - [Estado de implementación](docs/ESTADO-DE-IMPLEMENTACION.md)
