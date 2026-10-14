@@ -76,4 +76,14 @@
   };
   document.querySelectorAll("[data-signout]").forEach(el=>el.addEventListener("click",()=>window.UG.signOut()));
   document.querySelectorAll("[data-user-email]").forEach(el=>{el.textContent=window.UG.user()?.email||"Cuenta";});
+
+  // Carga el asistente de ayuda en todas las páginas sin CDN ni dependencias externas.
+  // El archivo del bot se mantiene separado para que pueda editarse de forma independiente.
+  if (!document.querySelector('script[data-ug-helpbot-script]')) {
+    const helpBotScript = document.createElement("script");
+    helpBotScript.src = "assets/js/help-bot.js";
+    helpBotScript.dataset.ugHelpbotScript = "true";
+    helpBotScript.defer = true;
+    document.head.append(helpBotScript);
+  }
 })();
