@@ -16,12 +16,12 @@
   const FAQ = [
     {keys:["cuenta","crear cuenta","registrarme","registro","iniciar sesion","entrar","login","contrasena","recuperar contraseña"],title:"Cuenta",answer:"La página Entrar permite iniciar sesión, crear una cuenta con correo y contraseña y solicitar la recuperación de contraseña. Si la confirmación por correo está activada, revisa también la bandeja de spam."},
     {keys:["servicio","servicios","servicios aprobados","publicar servicio","publicar un servicio","solicitar servicio","marketplace","contratar un servicio"],title:"Servicios",answer:"La página Servicios muestra los servicios aprobados y permite iniciar sesión para publicar o enviar una solicitud. La solicitud no cobra ni reserva dinero; el marketplace no procesa pagos en esta versión."},
-    {keys:["membresias","planes","geek","creator","otaku pro"],title:"Membresías",answer:"La página Membresías muestra las opciones Geek, Creator y Otaku Pro. Son informativas en esta versión: el checkout está desactivado y no se puede pagar ni activar una membresía desde el sitio."},
+    {keys:["membresias","planes","plan geek","plan creator","plan otaku pro","otaku pro"],title:"Membresías",answer:"La página Membresías muestra las opciones Geek, Creator y Otaku Pro. Son informativas en esta versión: el checkout está desactivado y no se puede pagar ni activar una membresía desde el sitio."},
     {keys:["qvapay","pagos","pagar","criptomonedas","bitcoin","btc","ethereum","eth","solana","bnb","checkout","transaccion"],title:"Pagos",answer:"Los pagos reales están desactivados. La integración comercial de QvaPay sigue en preparación y depende de la cuenta comercial y de la verificación del backend. No envíes dinero ni criptomonedas; el bot no puede confirmar pagos."},
     {keys:["feedback","sugerencia","enviar comentario","reportar error","problema","pregunta sin respuesta"],title:"Feedback",answer:"Puedes enviar una pregunta o sugerencia con el formulario de este asistente. El correo es opcional. Los comentarios quedan para revisión administrativa; no hay un plazo de respuesta prometido. No incluyas contraseñas, claves privadas ni datos bancarios."},
     {keys:["privacidad","cookies","terminos y condiciones","datos personales"],title:"Políticas",answer:"El sitio incluye páginas de Privacidad, Cookies y Términos y condiciones. Los propios documentos indican que deben revisarse antes del lanzamiento comercial."},
     {keys:["moderacion","moderador","administrador","anuncio pendiente"],title:"Moderación",answer:"El panel de moderación incluye colas de servicios y anuncios pendientes. La bandeja de feedback está reservada al rol admin; los moderadores no tienen acceso a esa bandeja por defecto."},
-    {keys:["universo geek","que es el sitio","que ofrece el sitio","anime","manga","manhwa","gaming"],title:"Sobre el sitio",answer:"Universo Geek es una plataforma en desarrollo para la comunidad gamer y fans del anime, manga y manhwa, con enfoque en Latinoamérica y Estados Unidos. La portada presenta la comunidad y el marketplace de servicios creativos."}
+    {keys:["que es universo geek","que ofrece universo geek","sobre universo geek","sobre el sitio","comunidad gamer","comunidad de anime","comunidad de manga","comunidad de manhwa","latinoamerica","estados unidos"],title:"Sobre el sitio",answer:"Universo Geek es una plataforma en desarrollo para la comunidad gamer y fans del anime, manga y manhwa, con enfoque en Latinoamérica y Estados Unidos. La portada presenta la comunidad y el marketplace de servicios creativos."}
   ];
 
   const norm = value => String(value || "").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
@@ -118,7 +118,7 @@
       if (!clean) return "Escribe una pregunta sobre una función de Universo Geek.";
       const matches = FAQ.map(item => ({
         item,
-        score: item.keys.reduce((n,key) => n + (clean.includes(norm(key)) ? Math.max(1,norm(key).split(" ").length) : 0), 0)
+        score: item.keys.reduce((n,key) => n + (((" " + clean + " ").includes(" " + norm(key) + " ")) ? Math.max(1,norm(key).split(" ").length) : 0), 0)
       })).filter(result => result.score > 0).sort((a,b) => b.score-a.score);
       if (!matches.length) return "No encuentro una respuesta confirmada para esa pregunta en la documentación actual del sitio. No voy a adivinar. Envíala como «Pregunta sin respuesta» mediante el formulario para que el equipo pueda revisarla.";
       if (matches.length > 1 && matches[0].score < matches[1].score + 2) return "Tu pregunta puede referirse a más de una función y no quiero darte información incorrecta. Reformúlala sobre un solo tema o envíala al equipo mediante el formulario.";
