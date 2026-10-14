@@ -665,3 +665,141 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 }
 
+
+
+/* 10. Asistente de ayuda y formulario de feedback. Mantener estilos aislados en .ug-helpbot. */
+.ug-helpbot {
+  position: fixed;
+  z-index: 1000;
+  right: 18px;
+  bottom: 18px;
+  width: min(390px, calc(100vw - 24px));
+  color: var(--text);
+  font: inherit;
+}
+.ug-helpbot button,
+.ug-helpbot input,
+.ug-helpbot select,
+.ug-helpbot textarea { font: inherit; }
+.ug-helpbot__toggle {
+  display: block;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 13px 18px;
+  color: var(--text);
+  background: var(--purple);
+  box-shadow: 0 10px 35px #0007;
+  font-weight: 750;
+  cursor: pointer;
+}
+.ug-helpbot__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(78vh, 760px);
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 16px 50px #0009;
+}
+.ug-helpbot__panel[hidden] { display: none; }
+.ug-helpbot__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.ug-helpbot__header strong,
+.ug-helpbot__header small { display: block; }
+.ug-helpbot__header small { margin-top: 4px; color: var(--muted); font-size: .76rem; }
+.ug-helpbot__close {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: var(--text);
+  background: var(--panel2);
+  cursor: pointer;
+}
+.ug-helpbot__messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 100px;
+  max-height: 190px;
+  padding: 0 14px;
+  overflow-y: auto;
+}
+.ug-helpbot__bubble {
+  max-width: 94%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  font-size: .9rem;
+}
+.ug-helpbot__bubble--bot { align-self: flex-start; background: var(--panel2); }
+.ug-helpbot__bubble--user { align-self: flex-end; background: #453779; }
+.ug-helpbot__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px;
+}
+.ug-helpbot__quick button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  font-size: .78rem;
+}
+.ug-helpbot__ask {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.ug-helpbot__ask input,
+.ug-helpbot__feedback input,
+.ug-helpbot__feedback select,
+.ug-helpbot__feedback textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px;
+  color: var(--text);
+  background: var(--bg);
+}
+.ug-helpbot__ask input { flex: 1; }
+.ug-helpbot__ask button { white-space: nowrap; }
+.ug-helpbot__feedback {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+.ug-helpbot__feedback h3 { margin: 0; font-size: 1.05rem; }
+.ug-helpbot__feedback p { margin: 0; font-size: .84rem; line-height: 1.5; }
+.ug-helpbot__feedback label { display: grid; gap: 5px; font-size: .84rem; }
+.ug-helpbot__feedback textarea { resize: vertical; }
+.ug-helpbot__feedback .button { width: 100%; }
+.ug-helpbot__status { min-height: 1.3em; color: var(--muted); }
+.ug-helpbot__honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.ug-helpbot button:focus-visible,
+.ug-helpbot input:focus-visible,
+.ug-helpbot select:focus-visible,
+.ug-helpbot textarea:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .ug-helpbot { right: 10px; bottom: 10px; width: calc(100vw - 20px); }
+  .ug-helpbot__panel { max-height: 80vh; }
+  .ug-helpbot__messages { max-height: 130px; }
+}
