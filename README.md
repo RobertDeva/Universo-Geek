@@ -27,13 +27,14 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - Panel personal mínimo con comprobación de sesión.
 - Páginas informativas de membresías, privacidad y cookies.
 - Marketplace conectado a Supabase para listar servicios aprobados, enviar publicaciones pendientes y crear solicitudes de contratación sin procesar pagos.
+- Panel personal con gestión del flujo de pedidos como comprador/vendedor; las transiciones se validan en la base de datos.
 - Centro de moderación para servicios y anuncios de afiliados, con RPCs seguras y auditoría.
 - Página de resultado de pago que no confirma ni activa pagos.
 - Cabeceras iniciales de seguridad y documentación técnica.
 
 ## Funciones que aún NO están listas
 
-- La publicación y las solicitudes de contratación del marketplace ya están conectadas a Supabase; la moderación y la gestión posterior de pedidos aún requieren panel administrativo.
+- La publicación, moderación de servicios/anuncios y gestión de pedidos básicos están conectadas a Supabase. El panel general para usuarios, asignación de roles y transacciones financieras todavía no está implementado.
 - El panel general para usuarios, asignación de roles y transacciones todavía no está implementado. La moderación de servicios/anuncios sí está conectada.
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
