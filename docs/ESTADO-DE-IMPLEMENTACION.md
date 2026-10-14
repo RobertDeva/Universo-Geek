@@ -37,7 +37,7 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 ## Configuración de Supabase pendiente
 1. Agregar solo las URL de redirección necesarias para el entorno de prueba.
 2. Configurar correo SMTP y recuperación de cuenta.
-3. **Activar la protección contra contraseñas filtradas** en Authentication → Security and Protection. El asesor de seguridad todavía informa que está deshabilitada.
+3. Revisar la protección contra contraseñas filtradas en Authentication → Security and Protection. La documentación de Supabase indica que está disponible en Pro y superiores; si el proyecto está en Free, no actualizar el plan sin revisar el coste.
 4. Probar RLS con usuarios separados de tipo user, moderator y admin.
 
 ## Pruebas y verificación
