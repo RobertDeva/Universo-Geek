@@ -31,7 +31,8 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - Marketplace conectado a Supabase para listar servicios aprobados, enviar publicaciones pendientes y crear solicitudes de contratación sin procesar pagos.
 - Panel personal con gestión del flujo de pedidos como comprador/vendedor; las transiciones se validan en la base de datos.
 - Centro de moderación para servicios y anuncios de afiliados, con RPCs seguras y auditoría.
-- Asistente local de preguntas frecuentes, visible en todas las páginas, con formulario de feedback y bandeja de revisión para administradores.
+- Asistente local con respuestas limitadas a funciones verificadas del sitio y fallback explícito cuando no conoce la respuesta.
+- Feedback protegido por Edge Function con validación de datos, límite de cinco envíos por IP hash/hora, protección de tamaño de solicitud y estadísticas administrativas agregadas.
 - Página de resultado de pago que no confirma ni activa pagos.
 - Cabeceras iniciales de seguridad y documentación técnica.
 
