@@ -9,12 +9,93 @@
 (() => {
   // Atajo local para encontrar elementos de la página.
   const $ = (s, root=document) => root.querySelector(s);
-  // Navegación móvil: abre o cierra el menú y actualiza el estado accesible.
-  const menu = $(".menu-toggle"), nav = $(".nav");
-  if (menu && nav) menu.addEventListener("click", () => {
-    const open=nav.classList.toggle("open");
-    menu.setAttribute("aria-expanded",String(open));
+  // Acceso rápido al contenido para teclado y lectores de pantalla.
+  if (!$(".skip-link")) {
+    const skip = document.createElement("a");
+    skip.className = "skip-link";
+    skip.href = "#main";
+    skip.textContent = "Saltar al contenido";
+    document.body.prepend(skip);
+  }
+  const main = $("main");
+  if (main && !main.id) main.id = "main";
+
+  // Preferencia de tema local: no requiere cookies ni servicios externos.
+  const root = document.documentElement;
+  const savedTheme = (() => { try { return localStorage.getItem("ug_theme"); } catch { return null; } })();
+  const initialTheme = savedTheme === "light" || savedTheme === "dark"
+    ? savedTheme
+    : (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  root.dataset.theme = initialTheme;
+  const header = $(".site-header"), nav = $(".nav");
+  if (header && nav && !$(".theme-toggle")) {
+    const themeButton = document.createElement("button");
+    themeButton.type = "button";
+    themeButton.className = "theme-toggle";
+    themeButton.setAttribute("data-theme-toggle", "");
+    themeButton.setAttribute("aria-pressed", String(initialTheme === "light"));
+    themeButton.setAttribute("aria-label", "Cambiar tema de color");
+    themeButton.textContent = initialTheme === "light" ? "🌙 Tema oscuro" : "☀️ Tema claro";
+    nav.append(themeButton);
+  }
+  const updateThemeButton = () => {
+    const button = $("[data-theme-toggle]");
+    if (!button) return;
+    const light = root.dataset.theme === "light";
+    button.textContent = light ? "🌙 Tema oscuro" : "☀️ Tema claro";
+    button.setAttribute("aria-pressed", String(light));
+  };
+  document.addEventListener("click", event => {
+    const themeButton = event.target.closest("[data-theme-toggle]");
+    if (!themeButton) return;
+    const next = root.dataset.theme === "light" ? "dark" : "light";
+    root.dataset.theme = next;
+    try { localStorage.setItem("ug_theme", next); } catch {}
+    updateThemeButton();
   });
+
+  // Navegación móvil: actualiza el estado accesible y permite cerrar con teclado.
+  const menu = $(".menu-toggle");
+  if (menu && nav) {
+    const closeMenu = () => {
+      nav.classList.remove("open");
+      menu.setAttribute("aria-expanded", "false");
+    };
+    menu.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      menu.setAttribute("aria-expanded", String(open));
+    });
+    nav.querySelectorAll("a").forEach(link => link.addEventListener("click", closeMenu));
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeMenu();
+    });
+    document.addEventListener("click", event => {
+      if (!nav.contains(event.target) && !menu.contains(event.target)) closeMenu();
+    });
+  }
+
+  // Búsqueda local de secciones en la portada; no finge ser un buscador global.
+  const sectionSearch = $("[data-section-search]");
+  const searchableCards = Array.from(document.querySelectorAll("[data-search-card]"));
+  const searchStatus = $("[data-search-status]");
+  if (sectionSearch && searchableCards.length) {
+    const runSearch = () => {
+      const query = sectionSearch.value.trim().toLocaleLowerCase();
+      let visible = 0;
+      searchableCards.forEach(card => {
+        const matches = !query || card.textContent.toLocaleLowerCase().includes(query);
+        card.hidden = !matches;
+        if (matches) visible++;
+      });
+      if (searchStatus) {
+        searchStatus.textContent = query
+          ? (visible ? visible + (visible === 1 ? " sección encontrada." : " secciones encontradas.") : "No encontramos secciones con ese término. Prueba con gaming, anime, servicios o membresías.")
+          : "Busca por gaming, anime, servicios o membresías.";
+      }
+    };
+    sectionSearch.addEventListener("input", runSearch);
+    runSearch();
+  }
   const year=$("#year");
   if(year) year.textContent=new Date().getFullYear();
   // config.js contiene la URL y la clave publishable; no contiene secretos.
