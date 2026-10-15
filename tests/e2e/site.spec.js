@@ -23,15 +23,17 @@ test('la búsqueda filtra secciones y no distingue tildes', async ({ page }) => 
 });
 
 test('el selector de tema alterna y conserva la preferencia', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('ug_theme', 'light'));
   await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('ug_theme', 'light'));
+  await page.reload();
   const button = page.locator('[data-theme-toggle]');
   await expect(button).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await button.click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(button).toHaveAttribute('aria-pressed', 'false');
   await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
 test('la navegación móvil abre, expone su estado y cierra con Escape', async ({ page, isMobile }) => {
