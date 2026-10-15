@@ -940,7 +940,9 @@ button:disabled, .button:disabled { cursor: not-allowed; opacity: .65; transform
 }
 @media (max-width: 620px) {
   .site-header { min-height: 68px; padding-left: 18px; padding-right: 18px; }
-  .site-header .theme-toggle { margin-top: 6px; width: 100%; }
+  /* Mantiene el selector de tema visible y compacto junto al botón del menú. */
+  .site-header .theme-toggle { margin-top: 0; width: auto; min-width: 38px; padding: 7px 9px; font-size: 0; flex-shrink: 0; }
+  .site-header .theme-toggle::after { content: "◐"; font-size: 1.25rem; line-height: 1; }
   .nav { gap: 8px; }
   .nav.open { box-shadow: 0 18px 30px rgb(0 0 0 / 18%); }
   .hero h1 { font-size: clamp(2.75rem, 13vw, 3.45rem); }
