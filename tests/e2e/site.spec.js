@@ -12,7 +12,7 @@ test('la portada carga y muestra contenido esencial', async ({ page }) => {
 test('la búsqueda filtra secciones y no distingue tildes', async ({ page }) => {
   await page.goto('/');
   const search = page.locator('[data-section-search]');
-  await search.fill('ilustracion');
+  await search.fill('servicios');
   await expect(page.locator('#section-services')).toBeVisible();
   await expect(page.locator('#section-gaming')).toBeHidden();
   await expect(page.locator('[data-search-status]')).toContainText(/1 sección encontrada/i);
@@ -23,6 +23,7 @@ test('la búsqueda filtra secciones y no distingue tildes', async ({ page }) => 
 });
 
 test('el selector de tema alterna y conserva la preferencia', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('ug_theme', 'dark'));
   await page.goto('/');
   const button = page.locator('[data-theme-toggle]');
   await expect(button).toBeVisible();
