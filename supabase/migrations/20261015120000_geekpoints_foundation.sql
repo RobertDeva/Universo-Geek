@@ -69,8 +69,8 @@ drop policy if exists "read own GeekPoints redemptions" on public.geekpoints_red
 create policy "read own GeekPoints redemptions" on public.geekpoints_redemptions for select to authenticated
  using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
 insert into public.geekpoints_plan_limits(plan_code,max_redemptions_24m,points_cost,enabled,notes) values
- ('geek',5,1000,false,'Pilot proposal; disabled pending margin review'),
- ('otaku_pro',2,2500,false,'Pilot proposal; disabled pending margin review'),
+ ('geek',2,1000,false,'Pilot proposal; disabled pending margin review'),
+ ('otaku_pro',1,2500,false,'Pilot proposal; disabled pending margin review'),
  ('creator',0,5000,false,'Not redeemable; creator access requires application/approval')
 on conflict (plan_code) do nothing;
 insert into public.geekpoints_rules(rule_key,points,enabled,config) values
