@@ -69,7 +69,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
       - name: Prepare isolated Supabase auth stubs
-        run: psql -v ON_ERROR_STOP=1 <<'SQL'
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
           CREATE ROLE anon NOLOGIN;
           CREATE ROLE authenticated NOLOGIN;
           CREATE SCHEMA auth;
