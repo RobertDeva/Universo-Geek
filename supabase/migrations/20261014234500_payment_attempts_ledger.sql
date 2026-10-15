@@ -61,7 +61,7 @@ for each row execute function public.ug_payment_attempts_touch_updated_at();
 alter table public.payment_attempts enable row level security;
 
 -- No browser-side INSERT/UPDATE/DELETE. A trusted backend creates and advances attempts.
-revoke all on public.payment_attempts from anon, authenticated;
+revoke all on public.payment_attempts from public, anon, authenticated;
 grant select on public.payment_attempts to authenticated;
 
 drop policy if exists "users read own payment attempts" on public.payment_attempts;
