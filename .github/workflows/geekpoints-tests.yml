@@ -1,0 +1,100 @@
+# Pruebas aisladas de GeekPoints. Nunca conecta con Supabase de producción.
+name: GeekPoints isolated tests
+
+on:
+  pull_request:
+    branches:
+      - audit/rebuild-2026-10-14
+      - main
+    paths:
+      - "supabase/migrations/*geekpoints*.sql"
+      - "tests/**"
+      - ".github/workflows/geekpoints-tests.yml"
+  push:
+    branches:
+      - feature/geekpoints-foundation
+    paths:
+      - "supabase/migrations/*geekpoints*.sql"
+      - "tests/**"
+      - ".github/workflows/geekpoints-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-simulation:
+    name: Python rules and 500-user simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run business-rule tests
+        run: python -m unittest discover -s tests -v
+
+  postgres-integration:
+    name: PostgreSQL migrations, RPC, and RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: geekpoints_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d geekpoints_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: test_only_password
+      PGDATABASE: geekpoints_test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Prepare isolated Supabase auth stubs
+        run: psql -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE SCHEMA auth;
+          CREATE TABLE auth.users (
+            id uuid PRIMARY KEY,
+            email text UNIQUE
+          );
+          CREATE OR REPLACE FUNCTION auth.uid()
+          RETURNS uuid
+          LANGUAGE sql STABLE
+          AS $$
+            SELECT NULLIF(
+              current_setting('request.jwt.claim.sub', true), ''
+            )::uuid
+          $$;
+          CREATE OR REPLACE FUNCTION public.is_admin()
+          RETURNS boolean
+          LANGUAGE sql STABLE
+          AS $$ SELECT false $$;
+          GRANT USAGE ON SCHEMA auth TO authenticated;
+          GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
+          SQL
+      - name: Apply GeekPoints migrations to disposable PostgreSQL
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261015120000_geekpoints_foundation.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261015123000_geekpoints_idempotency_race_fix.sql
+      - name: Verify RPC behavior and row-level security
+        run: psql -v ON_ERROR_STOP=1 -f tests/geekpoints_postgres_integration.sql
