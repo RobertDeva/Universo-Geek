@@ -14,6 +14,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - [Guía de preparación de Cloudflare Pages](docs/CLOUDFLARE-PAGES.md)
 - [Informe de cambios de seguridad en Supabase](docs/DB-SECURITY-2026-10-14.md)
 - [Configuración inicial del administrador](docs/ADMIN-BOOTSTRAP.md)
+- [Arquitectura de pagos multivía y liquidación en stablecoins](docs/PAGOS-MULTIRAIL-STABLECOINS.md)
 
 ## Tecnologías y restricciones
 
@@ -42,6 +43,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - El panel general para usuarios, asignación de roles y transacciones todavía no está implementado. La moderación de servicios/anuncios sí está conectada.
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
+- La rama `feature/multirail-stablecoin-checkout` contiene el diseño multivía y una migración preparatoria de `payment_attempts`; no activa cobros, no se ha aplicado a Supabase y requiere revisión/pruebas en desarrollo.
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
 - Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente. El feedback del asistente sí se guarda en Supabase.
 - Los correos con dominio `.example` son marcadores de posición y deben reemplazarse.
