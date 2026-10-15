@@ -1,0 +1,24 @@
+name: Static quality checks
+
+on:
+  pull_request:
+    branches:
+      - feature/owner-control-center
+  push:
+    branches:
+      - feature/ux-redesign-phases
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          find assets/js -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
+      - name: Check local HTML references and CSS
+        run: python3 tests/smoke_test.py
