@@ -9,7 +9,7 @@ import unittest
 
 PLANS = {
     "geek": {"limit": 2, "cost": 1000, "enabled": True},
-    "otaku_pro": {"limit": 1, "cost": 2500, "enabled": True},
+    "pro": {"limit": 1, "cost": 2500, "enabled": True},
     "creator": {"limit": 0, "cost": 5000, "enabled": True},
 }
 
@@ -94,14 +94,14 @@ class GeekPointsSimulationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "plan_limit_reached"):
             self.app.redeem(1, "geek", "request-geek-000003")
 
-    def test_otaku_pro_limit_is_one(self):
-        self.app.redeem(2, "otaku_pro", "request-pro-00000001")
+    def test_pro_limit_is_one(self):
+        self.app.redeem(2, "pro", "request-pro-00000001")
         with self.assertRaisesRegex(ValueError, "plan_limit_reached"):
-            self.app.redeem(2, "otaku_pro", "request-pro-00000002")
+            self.app.redeem(2, "pro", "request-pro-00000002")
 
     def test_limits_are_independent_by_plan(self):
         self.app.redeem(3, "geek", "request-geek-user003-1")
-        self.app.redeem(3, "otaku_pro", "request-pro-user003-01")
+        self.app.redeem(3, "pro", "request-pro-user003-01")
         self.assertEqual(len(self.app.accounts[3].redemptions), 2)
 
     def test_creator_is_not_redeemable(self):
@@ -144,7 +144,7 @@ class GeekPointsSimulationTests(unittest.TestCase):
         # Cada cuenta intenta un canje Geek y otro Pro.
         for user_id in range(1, 501):
             self.app.redeem(user_id, "geek", f"bulk-geek-user-{user_id:04d}")
-            self.app.redeem(user_id, "otaku_pro", f"bulk-pro-user-{user_id:04d}")
+            self.app.redeem(user_id, "pro", f"bulk-pro-user-{user_id:04d}")
         self.assertEqual(sum(len(a.redemptions) for a in self.app.accounts.values()), 1000)
         self.assertTrue(all(a.balance >= 0 for a in self.app.accounts.values()))
 
