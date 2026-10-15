@@ -61,13 +61,13 @@ revoke all on public.geekpoints_accounts, public.geekpoints_ledger, public.geekp
 grant select on public.geekpoints_accounts, public.geekpoints_ledger, public.geekpoints_redemptions to authenticated;
 drop policy if exists "read own GeekPoints account" on public.geekpoints_accounts;
 create policy "read own GeekPoints account" on public.geekpoints_accounts for select to authenticated
- using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
+ using (user_id = (select auth.uid()) or (select public.is_admin()));
 drop policy if exists "read own GeekPoints ledger" on public.geekpoints_ledger;
 create policy "read own GeekPoints ledger" on public.geekpoints_ledger for select to authenticated
- using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
+ using (user_id = (select auth.uid()) or (select public.is_admin()));
 drop policy if exists "read own GeekPoints redemptions" on public.geekpoints_redemptions;
 create policy "read own GeekPoints redemptions" on public.geekpoints_redemptions for select to authenticated
- using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
+ using (user_id = (select auth.uid()) or (select public.is_admin()));
 insert into public.geekpoints_plan_limits(plan_code,max_redemptions_24m,points_cost,enabled,notes) values
  ('geek',2,1000,false,'Pilot proposal; disabled pending margin review'),
  ('pro',1,2500,false,'Pilot proposal; disabled pending margin review'),
