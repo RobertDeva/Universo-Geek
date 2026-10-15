@@ -1,9 +1,10 @@
-name: Static quality checks
+name: Static and browser quality checks
 
 on:
   pull_request:
     branches:
       - feature/owner-control-center
+      - feature/ux-redesign-phases
   push:
     branches:
       - feature/ux-redesign-phases
@@ -13,12 +14,35 @@ permissions:
 
 jobs:
   static-checks:
+    name: Static checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Check JavaScript syntax
         run: |
           find assets/js -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
       - name: Check local HTML references and CSS
         run: python3 tests/smoke_test.py
+
+  playwright:
+    name: Playwright end-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install Playwright test runner
+        run: npm install --no-save --no-package-lock @playwright/test
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright browser tests
+        run: npx playwright test
