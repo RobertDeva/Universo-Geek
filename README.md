@@ -44,6 +44,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
 - La rama `feature/multirail-stablecoin-checkout` contiene el diseño multivía y una migración preparatoria de `payment_attempts`; no activa cobros, no se ha aplicado a Supabase y requiere revisión/pruebas en desarrollo.
+- La rama `feature/manual-wallet-payments-phase-a` añade `wallet-payment.html`, documentación de pagos manuales y una migración preparatoria `manual_wallet_payment_requests`. Las direcciones siguen sin publicarse, no hay órdenes ni cobros habilitados y la migración no se ha aplicado. Ver [Fase A — pagos directos a wallet](docs/FASE-A-PAGOS-WALLET-MANUAL.md).
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
 - Formularios de contacto, newsletter, favoritos, compras digitales y contenido editorial no están conectados completamente. El feedback del asistente sí se guarda en Supabase.
 - Los correos con dominio `.example` son marcadores de posición y deben reemplazarse.
@@ -64,7 +65,9 @@ No ejecutar automáticamente los SQL incluidos en paquetes anteriores: comparar 
 
 ## Pagos
 
-No activar pagos reales hasta que el backend valide directamente con el proveedor el estado, importe, moneda/referencia y la orden; debe ser idempotente y resistente a callbacks repetidos. Los secretos de QvaPay solo deben almacenarse como secretos de Edge Functions. No se deben activar membresías por una redirección del navegador.
+La Fase A es preparatoria: pagos directos con verificación manual prevista, pero **todavía desactivados**. No hay direcciones publicadas, órdenes de pago ni recepción de fondos desde el sitio. La migración `manual_wallet_payment_requests` no se ha aplicado a Supabase. Antes de una beta se necesita un flujo backend/admin auditado, direcciones verificadas, pruebas RLS, política de reembolsos y revisión legal para Panamá y los países atendidos.
+
+No activar pagos reales hasta que el backend valide el estado, importe, moneda/token, red, dirección y orden; debe ser idempotente y resistente a eventos repetidos. Los secretos de proveedores solo deben almacenarse como secretos de Edge Functions. No se deben activar membresías por una redirección del navegador ni por un hash proporcionado por el usuario.
 
 ## Pruebas locales
 
