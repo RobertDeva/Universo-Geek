@@ -101,3 +101,22 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/geekpoints_postgres_integration.sql
       - name: Verify concurrent idempotency and single ledger debit
         run: bash tests/geekpoints_concurrency.sh
+
+  supabase-local-migrations:
+    name: Supabase local stack and full migration replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start isolated local Supabase stack
+        run: supabase start
+      - name: Replay every project migration on local Supabase
+        run: supabase db reset --local
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
