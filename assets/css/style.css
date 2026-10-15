@@ -983,3 +983,10 @@ button:disabled, .button:disabled { cursor: not-allowed; opacity: .65; transform
 :root[data-theme="light"] .notice { background: #eee8ff; border-color: #c7b8f6; }
 :root[data-theme="light"] .notice.error { background: #fff0f0; border-color: #e7aaaa; color: #8d1717; }
 :root[data-theme="light"] .notice.success { background: #e9fbf3; border-color: #9bdac0; color: #086449; }
+
+
+/* Contraste WCAG AA del botón flotante de ayuda en tema claro. */
+:root[data-theme="light"] .ug-helpbot .ug-helpbot__toggle {
+  color: #ffffff;
+  background: #5638b4;
+}
