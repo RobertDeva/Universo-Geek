@@ -69,3 +69,35 @@ test('no aparecen errores JavaScript no controlados en la portada', async ({ pag
   await expect(page.getByRole('heading', { name: /Tu universo/i })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('el marketplace busca sin tildes, filtra categorías y ordena por precio', async ({ page }) => {
+  await page.route('**/rest/v1/marketplace_services?**', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: '1', user_id: 'seller-a', title: 'Ilustración de personaje anime', description: 'Avatar original', category: 'Ilustración', price_amount: 25, currency: 'USD', created_at: '2026-10-13T10:00:00Z' },
+        { id: '2', user_id: 'seller-b', title: 'Edición de vídeo gaming', description: 'Clips para streaming', category: 'Edición', price_amount: 10, currency: 'USD', created_at: '2026-10-14T10:00:00Z' },
+        { id: '3', user_id: 'seller-c', title: 'Diseño de banner', description: 'Banner para canal', category: 'Diseño', price_amount: 40, currency: 'USD', created_at: '2026-10-12T10:00:00Z' }
+      ])
+    });
+  });
+  await page.goto('/services.html');
+  const cards = page.locator('.service-card');
+  await expect(cards).toHaveCount(3);
+  await page.locator('#service-search').fill('ilustracion');
+  await expect(cards).toHaveCount(3);
+  await expect(cards.filter({ hasText: 'Ilustración de personaje anime' })).toBeVisible();
+  await expect(page.locator('#service-results-count')).toContainText('1 de 3');
+  await page.locator('#service-search').clear();
+  await page.locator('#service-category-filter').selectOption('Edición');
+  await expect(page.locator('#service-results-count')).toContainText('1 de 3');
+  await expect(cards.filter({ hasText: 'Edición de vídeo gaming' })).toBeVisible();
+  await page.locator('#service-filters-reset').click();
+  await page.locator('#service-sort').selectOption('price-asc');
+  await expect(cards.first()).toContainText('Edición de vídeo gaming');
+  await page.locator('#service-search').fill('no-existe');
+  await expect(page.locator('#service-no-results')).toBeVisible();
+  await page.locator('#service-filters-reset').click();
+  await expect(page.locator('#service-results-count')).toContainText('3 servicios disponibles');
+});
