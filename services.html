@@ -39,6 +39,7 @@ async function loadServices(){
       button.addEventListener("click",()=>openRequest(s));
       card.append(badge,h,desc,price,button);list.append(card);
     }
+    window.dispatchEvent(new Event("ug:services-loaded"));
   }catch(e){list.replaceChildren();const empty=document.createElement("p");empty.className="empty-state";empty.textContent="No se pudieron cargar los servicios. Comprueba la configuración de Supabase y vuelve a intentarlo.";list.append(empty);show(globalMsg,e.message,"error");}
 }
 function openRequest(s){
