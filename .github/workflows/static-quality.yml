@@ -82,7 +82,15 @@ jobs:
           exit 1
       - name: Audit homepage with Lighthouse
         run: |
-          npx lhci autorun --collect.url=http://127.0.0.1:4173/ --collect.numberOfRuns=1 --collect.settings.chromeFlags="--no-sandbox --headless" --upload.target=temporary-public-storage
+          npx lhci autorun --collect.url=http://127.0.0.1:4173/ --collect.numberOfRuns=1 --collect.settings.chromeFlags="--no-sandbox --headless" --upload.target=filesystem --upload.outputDir=./lighthouse-report
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Stop local static server
         if: always()
         run: if [ -f /tmp/universo-geek-http.pid ]; then kill "$(cat /tmp/universo-geek-http.pid)" || true; fi
