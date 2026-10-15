@@ -44,7 +44,6 @@
     render();
     search.focus();
   });
-  const observer = new MutationObserver(() => render());
-  observer.observe(list, { childList: true });
+  window.addEventListener("ug:services-loaded", render);
   render();
 })();
