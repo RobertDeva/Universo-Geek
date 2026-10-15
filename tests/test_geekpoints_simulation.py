@@ -1,16 +1,16 @@
 """Simulación de GeekPoints con 500 usuarios ficticios.
 
-Este archivo valida reglas de negocio en Python. No sustituye pruebas reales
-de PostgreSQL/Supabase ni valida RLS o concurrencia en el motor de base de datos.
+Prueba reglas de negocio en Python; no sustituye las pruebas reales de PostgreSQL.
+Los planes están deshabilitados por defecto, igual que en la migración.
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 import unittest
 
 PLANS = {
-    "geek": {"limit": 2, "cost": 1000, "enabled": True},
-    "pro": {"limit": 1, "cost": 2500, "enabled": True},
-    "creator": {"limit": 0, "cost": 5000, "enabled": True},
+    "geek": {"limit": 2, "cost": 1000, "enabled": False},
+    "pro": {"limit": 1, "cost": 2500, "enabled": False},
+    "creator": {"limit": 0, "cost": 5000, "enabled": False},
 }
 
 @dataclass
@@ -31,7 +31,7 @@ class Account:
     ledger_keys: set = field(default_factory=set)
 
 class FakeGeekPoints:
-    """Modelo sencillo y comentado de los controles económicos esperados."""
+    """Modelo didáctico de los controles económicos esperados."""
     def __init__(self):
         self.accounts = {i: Account(i, balance=5000) for i in range(1, 501)}
         self.plans = {key: dict(value) for key, value in PLANS.items()}
@@ -43,14 +43,11 @@ class FakeGeekPoints:
         account = self.accounts[user_id]
         if not request_key or len(request_key) < 16 or len(request_key) > 120:
             raise ValueError("invalid_request_key")
-
-        # Reintentar una solicitud con la misma clave no vuelve a cobrar puntos.
         if request_key in self.requests:
             old = self.requests[request_key]
             if old.user_id != user_id or old.plan_code != plan_code:
                 raise ValueError("request_key_conflict")
             return old
-
         plan = self.plans.get(plan_code)
         if not plan or not plan["enabled"]:
             raise ValueError("plan_disabled")
@@ -58,8 +55,6 @@ class FakeGeekPoints:
             raise ValueError("account_frozen")
         if account.balance < plan["cost"]:
             raise ValueError("insufficient_points")
-
-        # El cupo se calcula por usuario y plan en una ventana móvil de 24 meses.
         cutoff = self.now - timedelta(days=365.25 * 2)
         used = sum(
             1 for item in account.redemptions
@@ -68,7 +63,6 @@ class FakeGeekPoints:
         )
         if used >= plan["limit"]:
             raise ValueError("plan_limit_reached")
-
         redemption = Redemption(
             user_id, plan_code, request_key, self.now,
             redemption_id=self.next_id
@@ -83,6 +77,9 @@ class FakeGeekPoints:
 class GeekPointsSimulationTests(unittest.TestCase):
     def setUp(self):
         self.app = FakeGeekPoints()
+        # Activación solo dentro del modelo de prueba, nunca en Supabase.
+        self.app.plans["geek"]["enabled"] = True
+        self.app.plans["pro"]["enabled"] = True
 
     def test_500_fictional_users_created(self):
         self.assertEqual(len(self.app.accounts), 500)
@@ -105,7 +102,7 @@ class GeekPointsSimulationTests(unittest.TestCase):
         self.assertEqual(len(self.app.accounts[3].redemptions), 2)
 
     def test_creator_is_not_redeemable(self):
-        with self.assertRaisesRegex(ValueError, "plan_limit_reached"):
+        with self.assertRaisesRegex(ValueError, "plan_disabled"):
             self.app.redeem(4, "creator", "request-creator-00001")
 
     def test_same_key_is_idempotent(self):
@@ -141,7 +138,6 @@ class GeekPointsSimulationTests(unittest.TestCase):
             self.app.redeem(11, "geek", "short")
 
     def test_bulk_500_user_scenario(self):
-        # Cada cuenta intenta un canje Geek y otro Pro.
         for user_id in range(1, 501):
             self.app.redeem(user_id, "geek", f"bulk-geek-user-{user_id:04d}")
             self.app.redeem(user_id, "pro", f"bulk-pro-user-{user_id:04d}")
