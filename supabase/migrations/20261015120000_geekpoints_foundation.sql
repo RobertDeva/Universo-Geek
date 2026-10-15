@@ -61,13 +61,13 @@ revoke all on public.geekpoints_accounts, public.geekpoints_ledger, public.geekp
 grant select on public.geekpoints_accounts, public.geekpoints_ledger, public.geekpoints_redemptions to authenticated;
 drop policy if exists "read own GeekPoints account" on public.geekpoints_accounts;
 create policy "read own GeekPoints account" on public.geekpoints_accounts for select to authenticated
- using (user_id = (select auth.uid()) or (select public.is_admin()));
+ using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
 drop policy if exists "read own GeekPoints ledger" on public.geekpoints_ledger;
 create policy "read own GeekPoints ledger" on public.geekpoints_ledger for select to authenticated
- using (user_id = (select auth.uid()) or (select public.is_admin()));
+ using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
 drop policy if exists "read own GeekPoints redemptions" on public.geekpoints_redemptions;
 create policy "read own GeekPoints redemptions" on public.geekpoints_redemptions for select to authenticated
- using (user_id = (select auth.uid()) or (select public.is_admin()));
+ using (user_id = (select auth.uid()) or exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'));
 insert into public.geekpoints_plan_limits(plan_code,max_redemptions_24m,points_cost,enabled,notes) values
  ('geek',5,1000,false,'Pilot proposal; disabled pending margin review'),
  ('otaku_pro',2,2500,false,'Pilot proposal; disabled pending margin review'),
@@ -84,11 +84,16 @@ create or replace function public.geekpoints_request_redemption(p_plan_code text
 returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare
  v_user uuid := auth.uid(); v_plan public.geekpoints_plan_limits%rowtype;
- v_account public.geekpoints_accounts%rowtype; v_used integer; v_id uuid;
+ v_account public.geekpoints_accounts%rowtype; v_used integer; v_id uuid; v_existing public.geekpoints_redemptions%rowtype;
 begin
  if v_user is null then raise exception 'Authentication required' using errcode='28000'; end if;
  if p_request_key is null or length(p_request_key)<16 or length(p_request_key)>120 then
   raise exception 'Invalid request key' using errcode='22023';
+ end if;
+ select * into v_existing from public.geekpoints_redemptions where request_key=p_request_key;
+ if found then
+  if v_existing.user_id <> v_user or v_existing.plan_code <> p_plan_code then raise exception 'Request key already used' using errcode='23505'; end if;
+  return v_existing.id;
  end if;
  select * into v_plan from public.geekpoints_plan_limits where plan_code=p_plan_code and enabled=true for share;
  if not found then raise exception 'Redemption is not available for this plan' using errcode='22023'; end if;
