@@ -7,7 +7,7 @@ Esta migración crea el libro mayor y la solicitud de canje, pero no activa reco
 | Código | Máximo | Coste piloto GP | Estado |
 |---|---:|---:|---|
 | geek | 2 | 1.000 | Deshabilitado |
-| otaku_pro | 1 | 2.500 | Deshabilitado |
+| pro | 1 | 2.500 | Deshabilitado |
 | creator | 0 | 5.000 | Deshabilitado/no canjeable |
 
 Los códigos deben cotejarse con los planes comerciales reales antes de activar nada. El código creator existe en la base por compatibilidad con roles y no concede rol de creador. Geek Creator requiere invitación o solicitud aprobada, actividad original y afiliación activa. El canje no activa una membresía; solo crea solicitud pendiente y reserva GP. La ventana es móvil: created_at >= now() - interval '24 months'. Pendientes, aprobados y cumplidos cuentan para prevenir solicitudes simultáneas.
