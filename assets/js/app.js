@@ -57,19 +57,28 @@
   // Navegación móvil: actualiza el estado accesible y permite cerrar con teclado.
   const menu = $(".menu-toggle");
   if (menu && nav) {
-    const closeMenu = () => {
+    const closeMenu = (restoreFocus = false) => {
+      const wasOpen = nav.classList.contains("open");
       nav.classList.remove("open");
       menu.setAttribute("aria-expanded", "false");
       menu.setAttribute("aria-label", "Abrir menú");
+      if (restoreFocus && wasOpen) menu.focus({ preventScroll: true });
     };
+    // Relaciona el botón con el menú y mantiene su estado accesible.
+    if (!nav.id) nav.id = "primary-navigation";
+    menu.setAttribute("aria-controls", nav.id);
     menu.addEventListener("click", () => {
       const open = nav.classList.toggle("open");
       menu.setAttribute("aria-expanded", String(open));
       menu.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      if (open) {
+        const firstLink = nav.querySelector("a");
+        if (firstLink) firstLink.focus({ preventScroll: true });
+      }
     });
     nav.querySelectorAll("a").forEach(link => link.addEventListener("click", closeMenu));
     document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeMenu();
+      if (event.key === "Escape") closeMenu(true);
     });
     document.addEventListener("click", event => {
       if (!nav.contains(event.target) && !menu.contains(event.target)) closeMenu();
@@ -82,13 +91,15 @@
   const searchStatus = $("[data-search-status]");
   if (sectionSearch && searchableCards.length) {
     const runSearch = () => {
-      const query = sectionSearch.value.trim().toLocaleLowerCase();
+      const normalize = value => value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLocaleLowerCase();
+      const query = normalize(sectionSearch.value.trim());
       let visible = 0;
       searchableCards.forEach(card => {
-        const matches = !query || card.textContent.toLocaleLowerCase().includes(query);
+        const matches = !query || normalize(card.textContent).includes(query);
         card.hidden = !matches;
         if (matches) visible++;
       });
+      if (sectionSearch) sectionSearch.setAttribute("aria-controls", searchableCards.map(card => card.id).filter(Boolean).join(" "));
       if (searchStatus) {
         searchStatus.textContent = query
           ? (visible ? visible + (visible === 1 ? " sección encontrada." : " secciones encontradas.") : "No encontramos secciones con ese término. Prueba con gaming, anime, servicios o membresías.")
