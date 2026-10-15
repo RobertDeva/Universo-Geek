@@ -36,3 +36,16 @@ Los usuarios autenticados leen únicamente sus filas (o admin mediante la funci�
 
 ## Rama y aceptación
 Rama feature/geekpoints-foundation, basada en audit/rebuild-2026-10-14. Próximas fases separadas: referidos, contenido/vistas, resolución/reembolso, Geek Creator y panel. En staging probar saldo insuficiente, reintentos, concurrencia, límites separados, plan deshabilitado, cuenta congelada, aislamiento RLS entre usuarios y ausencia de activación automática. No aplicar a producción ni fusionar a main hasta revisión.
+
+
+## Pruebas automatizadas
+Hay una simulación de reglas de negocio en `tests/test_geekpoints_simulation.py`. Ejecutar con Python 3:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+La simulación cubre 500 usuarios ficticios, límites por plan, reintentos idempotentes, claves reutilizadas entre usuarios, saldo insuficiente, cuentas congeladas y planes deshabilitados. No ejecuta PostgreSQL ni valida RLS en el motor real; antes de fusionar debe hacerse una prueba de staging.
+
+## Corrección de idempotencia concurrente
+La migración `20261015123000_geekpoints_idempotency_race_fix.sql` revalida la clave de petición después de bloquear la cuenta. Esto corrige el caso en que dos peticiones simultáneas con la misma clave del mismo usuario podrían chocar contra la restricción única en vez de devolver la solicitud existente.
