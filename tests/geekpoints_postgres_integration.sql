@@ -3,12 +3,14 @@
 
 INSERT INTO auth.users(id, email) VALUES
  ('10000000-0000-4000-8000-000000000001', 'gp-user-1@example.invalid'),
- ('10000000-0000-4000-8000-000000000002', 'gp-user-2@example.invalid');
+ ('10000000-0000-4000-8000-000000000002', 'gp-user-2@example.invalid'),
+ ('10000000-0000-4000-8000-000000000003', 'gp-user-3@example.invalid');
 
 INSERT INTO public.geekpoints_accounts(user_id, balance)
 VALUES
  ('10000000-0000-4000-8000-000000000001', 3000),
- ('10000000-0000-4000-8000-000000000002', 3000);
+ ('10000000-0000-4000-8000-000000000002', 3000),
+ ('10000000-0000-4000-8000-000000000003', 3000);
 
 UPDATE public.geekpoints_plan_limits SET enabled = true WHERE plan_code = 'geek';
 
