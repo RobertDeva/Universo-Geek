@@ -36,7 +36,10 @@
     themeButton.setAttribute("aria-pressed", String(initialTheme === "light"));
     themeButton.setAttribute("aria-label", "Cambiar tema de color");
     themeButton.textContent = initialTheme === "light" ? "🌙 Tema oscuro" : "☀️ Tema claro";
-    nav.append(themeButton);
+    // El selector debe permanecer visible en móvil: .nav se oculta hasta abrir el menú.
+    const menuToggle = header.querySelector(".menu-toggle");
+    if (menuToggle) header.insertBefore(themeButton, menuToggle);
+    else header.append(themeButton);
   }
   const updateThemeButton = () => {
     const button = $("[data-theme-toggle]");
