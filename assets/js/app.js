@@ -91,7 +91,7 @@
   const searchStatus = $("[data-search-status]");
   if (sectionSearch && searchableCards.length) {
     const runSearch = () => {
-      const normalize = value => value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLocaleLowerCase();
+      const normalize = value => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
       const query = normalize(sectionSearch.value.trim());
       let visible = 0;
       searchableCards.forEach(card => {
