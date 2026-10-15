@@ -99,3 +99,5 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261015123000_geekpoints_idempotency_race_fix.sql
       - name: Verify RPC behavior and row-level security
         run: psql -v ON_ERROR_STOP=1 -f tests/geekpoints_postgres_integration.sql
+      - name: Verify concurrent idempotency and single ledger debit
+        run: bash tests/geekpoints_concurrency.sh
