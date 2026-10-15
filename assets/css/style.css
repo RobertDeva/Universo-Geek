@@ -958,3 +958,15 @@ button:disabled, .button:disabled { cursor: not-allowed; opacity: .65; transform
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Corrección de contraste para el menú móvil en tema claro. */
+:root[data-theme="light"] .nav {
+  background: #ffffff;
+  color: var(--muted);
+  border-bottom-color: var(--line);
+}
+:root[data-theme="light"] .nav a,
+:root[data-theme="light"] .nav a:not(.nav-login) { color: var(--text); }
+:root[data-theme="light"] .nav .nav-login { border-color: var(--line); color: var(--text) !important; }
+:root[data-theme="light"] .theme-toggle { background: #fff; color: var(--text); }
