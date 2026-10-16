@@ -9,11 +9,14 @@ Esta lista distingue cambios de código integrados de tareas que requieren acces
 - [x] PR #14 integrado: endurecer RPC administrativas y denegar acceso del navegador a la tabla de límites de feedback.
 - [x] Reproducción de todas las migraciones en un Supabase local desechable aprobada en CI.
 - [x] Mantener HTML/CSS/JavaScript nativo: sin npm, bundler ni CDN externo para servir el sitio.
-- [ ] Confirmar el resultado de la prueba completa de GeekPoints antes de integrar esa funcionalidad; todas las reglas siguen deshabilitadas.
+- [x] PR #17 integrado: base de GeekPoints y pruebas de reglas, concurrencia e idempotencia aprobadas; todas las reglas siguen deshabilitadas.
+- [x] PR #18/#19 integrados: búsqueda, filtros y ordenación del marketplace; comprobaciones estáticas del sitio aprobadas.
+- [x] PR #20 integrado: índice de feedback por usuario y nota de compatibilidad histórica.
+- [x] PR #21 integrado: las órdenes de pago quedan en solo lectura para roles del navegador; la migración pasó la reconstrucción local.
 
 ## Bloqueadores de seguridad en el Supabase principal
 
-- [ ] Autorizar y aplicar las migraciones nuevas al proyecto Supabase principal en una ventana controlada.
+- [ ] Autorizar y aplicar las migraciones nuevas de seguridad, permisos de órdenes e índice al proyecto Supabase principal en una ventana controlada.
 - [ ] Ejecutar de nuevo Security Advisor y confirmar que admin_site_feedback_stats() ya no se expone como SECURITY DEFINER.
 - [ ] Confirmar que site_feedback_rate_limits tiene la política explícita de denegación de acceso de cliente y privilegios revocados.
 - [ ] Revisar la opción de protección contra contraseñas filtradas en Authentication → Security and Protection; puede depender del plan. No actualizar el plan sin revisar el coste.

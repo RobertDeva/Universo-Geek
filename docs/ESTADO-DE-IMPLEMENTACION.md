@@ -1,6 +1,6 @@
 # Estado de implementación — 16 de octubre de 2026
 
-La rama `main` contiene la base integrada de HTML, CSS y JavaScript nativo. No requiere npm, bundler ni CDN. Los PR #10, #14 y #15 están integrados; el sitio **no se ha desplegado públicamente**. La rama `audit/rebuild-2026-10-14` está divergente y no debe fusionarse en bloque.
+La rama `main` contiene la base integrada de HTML, CSS y JavaScript nativo. No requiere npm, bundler ni CDN. Los PR #10, #14, #15, #16, #17, #18, #19, #20 y #21 están integrados; el sitio **no se ha desplegado públicamente**. La rama `audit/rebuild-2026-10-14` está divergente y no debe fusionarse en bloque.
 
 ## Incluido en esta fase
 - Portada y navegación móvil.
@@ -54,9 +54,9 @@ La rama `main` contiene la base integrada de HTML, CSS y JavaScript nativo. No r
 ## Pruebas y verificación
 - Verificados en Supabase los privilegios efectivos de roles y columnas tras las migraciones.
 - Verificada la política de creación de pedidos del marketplace contra el importe y moneda del anuncio.
-- El Security Advisor del proyecto Supabase principal sigue mostrando hallazgos: `admin_site_feedback_stats()` expuesta como `SECURITY DEFINER`, la tabla `site_feedback_rate_limits` con RLS sin política explícita y la protección contra contraseñas filtradas desactivada. Las migraciones correctivas están versionadas en `main`, pero **no se han aplicado al proyecto principal**; por tanto, estos hallazgos no se consideran resueltos en producción.
+- El Security Advisor del proyecto Supabase principal sigue mostrando hallazgos: `admin_site_feedback_stats()` expuesta como `SECURITY DEFINER`, la tabla `site_feedback_rate_limits` con RLS sin política explícita y la protección contra contraseñas filtradas desactivada. Las migraciones correctivas y el endurecimiento de permisos de órdenes están versionados en `main`, pero **no se han aplicado al proyecto principal**; por tanto, estos hallazgos no se consideran resueltos en producción. El índice de `site_feedback.user_id` también está versionado, pero el aviso de rendimiento seguirá hasta aplicar esa migración.
 - El asesor de rendimiento ya no reporta claves foráneas sin índice ni evaluaciones Auth repetidas; quedan avisos de políticas permisivas superpuestas e índices sin uso que no deben eliminarse sin métricas de tráfico.
-- La validación estática de autenticación pasó en CI en PR #15 y la reproducción limpia de migraciones pasó en CI en PR #14.
+- La validación estática de autenticación pasó en CI en PR #15; la validación estática del sitio pasó en PR #18/#19; la reproducción limpia de migraciones pasó en PR #14/#17/#20/#21.
 - No se han completado pruebas de navegador ni transacciones reales. Los registros recientes de Auth muestran una solicitud de registro desde GitHub Pages, pero no una solicitud desde la vista previa de Cloudflare; todavía hace falta probar el registro desde el origen exacto que se va a utilizar.
 
 ## Próximas tareas
