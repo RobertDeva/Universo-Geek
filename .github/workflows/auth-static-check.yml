@@ -1,0 +1,50 @@
+name: Auth static validation
+
+on:
+  pull_request:
+    branches:
+      - audit/rebuild-2026-10-14
+    paths:
+      - "login.html"
+      - ".github/workflows/auth-static-check.yml"
+  push:
+    branches:
+      - fix/integrate-github-pages-auth
+    paths:
+      - "login.html"
+      - ".github/workflows/auth-static-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-auth-page:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check login page structure and inline JavaScript syntax
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("login.html").read_text(encoding="utf-8")
+          required = [
+              'id="auth-form"', 'id="email"', 'id="password"',
+              'id="toggle-mode"', 'id="reset"', 'id="referral-field"',
+              'id="message"', 'assets/js/config.js', 'assets/js/app.js'
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing required login elements: " + ", ".join(missing))
+          scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, re.S | re.I)
+          inline = [script for script in scripts if script.strip()]
+          if len(inline) != 1:
+              raise SystemExit(f"Expected exactly one inline script, found {len(inline)}")
+          Path("/tmp/login-inline.js").write_text(inline[0], encoding="utf-8")
+          if 'notice("Cuenta creada.' in html:
+              raise SystemExit("Found potentially misleading unconditional account-created message")
+          print("Login structure OK; extracted inline script.")
+          PY
+          node --check /tmp/login-inline.js
