@@ -1,0 +1,85 @@
+name: QvaPay configuration safety
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/config.toml"
+      - "docs/qvapay/SETUP.md"
+      - ".github/workflows/qvapay-config-check.yml"
+  push:
+    branches:
+      - "fix/qvapay-config-unimplemented-functions"
+    paths:
+      - "supabase/config.toml"
+      - "docs/qvapay/SETUP.md"
+      - ".github/workflows/qvapay-config-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  qvapay-safety-gate:
+    name: Validate config and payment safety gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate TOML and QvaPay safety requirements
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import tomllib
+
+          config_path = Path("supabase/config.toml")
+          doc_path = Path("docs/qvapay/SETUP.md")
+          config_text = config_path.read_text(encoding="utf-8")
+          doc_text = doc_path.read_text(encoding="utf-8")
+
+          # Parsing with Python's standard TOML parser verifies syntax.
+          config = tomllib.loads(config_text)
+
+          forbidden_functions = {
+              "qvapay-create-invoice",
+              "qvapay-check-status",
+              "qvapay-webhook",
+          }
+          declared_functions = set(config.get("functions", {}))
+          active_declarations = forbidden_functions & declared_functions
+          assert not active_declarations, (
+              "QvaPay functions must not be declared before implementation: "
+              + ", ".join(sorted(active_declarations))
+          )
+
+          required_doc_phrases = [
+              "not implemented",
+              "Membership payments must remain disabled",
+              "Do not mark an order as paid",
+              "server-to-server",
+              "idempotent",
+              "isolated test project",
+          ]
+          missing = [phrase for phrase in required_doc_phrases
+                     if phrase.casefold() not in doc_text.casefold()]
+          assert not missing, (
+              "QvaPay setup document is missing safety requirements: "
+              + ", ".join(missing)
+          )
+
+          forbidden_source_paths = [
+              Path("supabase/functions/qvapay-create-invoice/index.ts"),
+              Path("supabase/functions/qvapay-check-status/index.ts"),
+              Path("supabase/functions/qvapay-webhook/index.ts"),
+          ]
+          existing_sources = [str(path) for path in forbidden_source_paths if path.exists()]
+          assert not existing_sources, (
+              "This configuration-only PR must not silently introduce unreviewed "
+              "QvaPay functions: " + ", ".join(existing_sources)
+          )
+
+          print("PASS: supabase/config.toml is valid TOML.")
+          print("PASS: unimplemented QvaPay functions are not declared.")
+          print("PASS: required payment safety gates are documented.")
+          print("PASS: no QvaPay Edge Function source was introduced by this change.")
+          PY
