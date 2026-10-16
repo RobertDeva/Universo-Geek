@@ -1,0 +1,76 @@
+# Static checks for the authentication page; no packages or build tools are installed.
+name: Auth static validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "login.html"
+      - "assets/js/config.js"
+      - ".github/workflows/auth-static-check.yml"
+  push:
+    branches:
+      - "fix/auth-registration-main-2026-10-16"
+    paths:
+      - "login.html"
+      - "assets/js/config.js"
+      - ".github/workflows/auth-static-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-auth-page:
+    name: Validate login HTML and inline JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Check login structure and extract inline script
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          html = Path("login.html").read_text(encoding="utf-8")
+          required = [
+              'id="auth-form"', 'id="email"', 'id="password"',
+              'id="toggle-mode"', 'id="reset"', 'id="referral-field"',
+              'id="message"', 'assets/js/config.js', 'assets/js/app.js'
+          ]
+          missing = [item for item in required if item not in html]
+          if missing:
+              raise SystemExit("Missing login elements: " + ", ".join(missing))
+
+          if 'payload.data={referral_code:code}' not in html:
+              raise SystemExit("Optional referral code is not passed as non-authoritative signup metadata.")
+          if "La validación del referido y cualquier recompensa deben validarse en el servidor." not in html:
+              raise SystemExit("Referral metadata must be explicitly documented as untrusted.")
+
+          # Never accept a success path that claims a session exists without a token.
+          if 'if(saveSession(d)){location.href=safeRedirect("dashboard.html");return;}' not in html:
+              raise SystemExit("Signup/login must redirect only after a valid access token is saved.")
+
+          scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, re.S | re.I)
+          inline = [script for script in scripts if script.strip()]
+          if len(inline) != 1:
+              raise SystemExit(f"Expected exactly one inline script, found {len(inline)}")
+          Path("/tmp/login-inline.js").write_text(inline[0], encoding="utf-8")
+
+          config = Path("assets/js/config.js").read_text(encoding="utf-8")
+          if re.search(r"service_role|sb_secret_", config, re.I):
+              raise SystemExit("A server-side/secret Supabase key must never appear in browser config.")
+
+          print("PASS: required authentication controls exist.")
+          print("PASS: referral metadata is documented as untrusted.")
+          print("PASS: redirect requires a valid access token.")
+          print("PASS: browser config contains no service-role/secret key marker.")
+          PY
+
+      - name: Check inline JavaScript syntax
+        run: node --check /tmp/login-inline.js
+
+      - name: Check shared browser JavaScript syntax
+        run: node --check assets/js/app.js
