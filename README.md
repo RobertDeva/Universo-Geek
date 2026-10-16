@@ -4,7 +4,7 @@ Plataforma en preparación para comunidad gamer, anime, manga y manhwa, enfocada
 
 ## Estado del proyecto
 
-La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audit/rebuild-2026-10-14`; **no se ha publicado ni desplegado el sitio**.
+La rama `main` es ahora la rama de integración. Los cambios recientes se han incorporado mediante pull requests y pruebas automáticas. `audit/rebuild-2026-10-14` sigue siendo una rama de pruebas histórica y divergente; no debe fusionarse en bloque. **No se ha realizado un despliegue público durante esta revisión**. El sitio todavía no está certificado para lanzamiento; consulta la [lista de preparación](docs/RELEASE-CHECKLIST-2026-10-16.md).
 
 - [Guía para editar el código manualmente](docs/GUIA-CODIGO-HUMANO.md)
 - [Asistente de ayuda y feedback](docs/ASISTENTE-Y-FEEDBACK.md)
@@ -14,6 +14,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - [Guía de preparación de Cloudflare Pages](docs/CLOUDFLARE-PAGES.md)
 - [Informe de cambios de seguridad en Supabase](docs/DB-SECURITY-2026-10-14.md)
 - [Configuración inicial del administrador](docs/ADMIN-BOOTSTRAP.md)
+- [Lista de preparación para lanzamiento](docs/RELEASE-CHECKLIST-2026-10-16.md)
 
 ## Tecnologías y restricciones
 
@@ -39,7 +40,6 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 ## Funciones que aún NO están listas
 
 - La publicación, moderación de servicios/anuncios y gestión de pedidos básicos están conectadas a Supabase. El panel general para usuarios, asignación de roles y transacciones financieras todavía no está implementado.
-- El panel general para usuarios, asignación de roles y transacciones todavía no está implementado. La moderación de servicios/anuncios sí está conectada.
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
@@ -49,7 +49,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 
 ## Configuración de Supabase
 
-El archivo `assets/js/config.js` contiene la URL del proyecto y una clave publicable de cliente. No guardar jamás una clave `service_role`, un token de proveedor o un secreto en el frontend.
+El archivo `assets/js/config.js` contiene la URL del proyecto y una clave publicable de cliente. En `main` apunta al proyecto Supabase principal; no despliegues `main` como vista previa ni pruebes registro en producción sin autorización. La rama `audit/rebuild-2026-10-14` usa un proyecto de pruebas distinto; no fusiones su archivo de configuración en `main`. Antes de crear una vista previa nueva, verifica qué configuración usa esa rama. No guardar jamás una clave `service_role`, un token de proveedor o un secreto en el frontend.
 
 En Supabase Auth, antes de probar:
 1. Permite solo las URL de redirección necesarias para el entorno de prueba.
@@ -76,4 +76,4 @@ Abre `http://localhost:8080`. Supabase Auth solo funcionará si el origen de pru
 
 ## Publicación
 
-No conectar ni desplegar Cloudflare Pages hasta recibir autorización explícita del propietario.
+No habilitar producción ni publicar sin autorización expresa. La conexión de Cloudflare Pages y la pausa de despliegues deben verificarse antes de cualquier despliegue; no se han podido verificar desde esta sesión.
