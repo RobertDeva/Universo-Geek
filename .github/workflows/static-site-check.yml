@@ -124,10 +124,30 @@ jobs:
           if errors:
               raise SystemExit("\n".join(errors))
 
+          services = (ROOT / "services.html").read_text(encoding="utf-8")
+          marketplace_css = (ROOT / "assets/css/marketplace.css").read_text(encoding="utf-8")
+          marketplace_js = (ROOT / "assets/js/marketplace.js").read_text(encoding="utf-8")
+          required_hooks = [
+              'id="service-search"', 'id="service-category-filter"',
+              'id="service-sort"', 'id="service-filters-reset"',
+              'id="service-results-count"', 'id="service-no-results"',
+              'assets/js/marketplace.js'
+          ]
+          missing_hooks = [hook for hook in required_hooks if hook not in services]
+          if missing_hooks:
+              raise SystemExit("Missing marketplace filter hooks: " + ", ".join(missing_hooks))
+          if "card.dataset.title" not in services or 'new Event("ug:services-loaded")' not in services:
+              raise SystemExit("Service cards must expose filter data and dispatch the loaded event.")
+          if ".service-card[hidden]" not in marketplace_css:
+              raise SystemExit("Filtered service cards need an explicit display:none rule.")
+          if "syncCategories" not in marketplace_js or "service-results-count" not in marketplace_js:
+              raise SystemExit("Marketplace category sync or result count logic is missing.")
+
           print(f"PASS: {len(pages)} HTML pages checked.")
           print(f"PASS: {local_count} local references resolved.")
           print(f"PASS: {inline_count} inline scripts extracted for syntax checks.")
           print("PASS: no external script/style CDN references found.")
+          print("PASS: marketplace filter controls, data hooks, and hidden-state CSS are present.")
           # Save scripts for the next step without adding dependencies.
           parser_index = 0
           for page in pages:
