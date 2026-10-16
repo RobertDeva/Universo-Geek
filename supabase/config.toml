@@ -1,9 +1,4 @@
-# Funciones de pago no desplegadas. Ver docs/qvapay/SETUP.md antes de habilitar.
-[functions.qvapay-create-invoice]
-verify_jwt = true
-
-[functions.qvapay-check-status]
-verify_jwt = true
-
-[functions.qvapay-webhook]
-verify_jwt = false
+# QvaPay integration is not implemented yet.
+# Do not declare or deploy qvapay-create-invoice, qvapay-check-status,
+# or qvapay-webhook until their reviewed source files and tests exist.
+# See docs/qvapay/SETUP.md for the implementation checklist.
