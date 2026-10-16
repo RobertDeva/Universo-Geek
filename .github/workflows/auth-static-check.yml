@@ -61,8 +61,8 @@ jobs:
 
           config = Path("assets/js/config.js").read_text(encoding="utf-8")
           # Remove comments first; security documentation may mention forbidden key names.
-          config_code = re.sub(r"/\\*.*?\\*/|//.*?$", "", config, flags=re.S | re.M)
-          key_match = re.search(r"""supabaseKey\\s*:\\s*["']([^"']+)["']""", config_code)
+          config_code = re.sub(r"/\*.*?\*/|//.*?$", "", config, flags=re.S | re.M)
+          key_match = re.search(r"""supabaseKey\s*:\s*["']([^"']+)["']""", config_code)
           if not key_match:
               raise SystemExit("Missing supabaseKey assignment in browser config.")
           public_key = key_match.group(1)
