@@ -1,6 +1,6 @@
-# Estado de implementación — 14 de octubre de 2026
+# Estado de implementación — 16 de octubre de 2026
 
-Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript nativo. No requiere npm, bundler ni CDN. Se mantiene separada de `main` y **no está publicada**.
+La rama `main` contiene la base integrada de HTML, CSS y JavaScript nativo. No requiere npm, bundler ni CDN. Los PR #10, #14 y #15 están integrados; el sitio **no se ha desplegado públicamente**. La rama `audit/rebuild-2026-10-14` está divergente y no debe fusionarse en bloque.
 
 ## Incluido en esta fase
 - Portada y navegación móvil.
@@ -26,6 +26,7 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - Los registros de auditoría administrativa no se pueden escribir directamente desde el navegador.
 - El rol moderator ya no puede promover cuentas a admin; las funciones de moderación se limitan a servicios/anuncios y contenido comunitario.
 - Las migraciones están versionadas en `supabase/migrations/`. El bootstrap histórico del administrador se conserva como marcador sin correo personal; consulta `docs/ADMIN-BOOTSTRAP.md` para preparar otro entorno.
+- La reproducción limpia de las migraciones en Supabase local pasó en CI en PR #14. Esa prueba no modifica los proyectos Supabase alojados.
 
 ## Limitaciones deliberadas
 - La moderación de servicios y anuncios ya está conectada; el panel de administración general para usuarios, roles y transacciones todavía no está completo.
@@ -41,11 +42,11 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 - El envío de feedback pasa por la Edge Function `submit-site-feedback`: valida el JSON y los campos, verifica sesiones presentadas, limita el tamaño de solicitud, aplica máximo cinco envíos por hash de IP por hora y no guarda la IP sin procesar.
 - La tabla de límites tiene RLS y no concede acceso directo a usuarios públicos. Los navegadores no pueden insertar directamente en `site_feedback`; la función de servidor llama al RPC con permisos restringidos.
 - La bandeja de administradores incluye estadísticas agregadas: total, pendientes, últimos 30 días y valoración media.
-- Las migraciones aplicadas y la función Edge están versionadas en `supabase/migrations/` y `supabase/functions/submit-site-feedback/index.ts`.
+- La función Edge `submit-site-feedback` está activa en el proyecto Supabase principal; el proyecto de pruebas `tvjglznjntegujfczljp` no tiene Edge Functions desplegadas. El feedback desde una vista previa que use ese proyecto de pruebas no está verificado y requiere desplegar la función allí antes de probarlo.
 - La sintaxis del JavaScript del navegador y los scripts inline de administración se han comprobado. La función Edge está activa en Supabase. Aún falta una prueba de extremo a extremo desde un navegador real con usuario anónimo y usuario autenticado.
 
 ## Configuración de Supabase pendiente
-1. Agregar solo las URL de redirección necesarias para el entorno de prueba.
+1. Añadir las URL de redirección exactas para el origen de prueba y el origen de publicación autorizado. No desplegar la rama principal en una vista previa mientras `assets/js/config.js` apunte al proyecto Supabase principal.
 2. Configurar correo SMTP y recuperación de cuenta.
 3. Revisar la protección contra contraseñas filtradas en Authentication → Security and Protection. La documentación de Supabase indica que está disponible en Pro y superiores; si el proyecto está en Free, no actualizar el plan sin revisar el coste.
 4. Probar RLS con usuarios separados de tipo user, moderator y admin.
@@ -53,14 +54,16 @@ Esta rama contiene una base estática reconstruida con HTML, CSS y JavaScript na
 ## Pruebas y verificación
 - Verificados en Supabase los privilegios efectivos de roles y columnas tras las migraciones.
 - Verificada la política de creación de pedidos del marketplace contra el importe y moneda del anuncio.
-- El asesor de seguridad solo mantiene el aviso de protección de contraseñas filtradas.
+- El Security Advisor del proyecto Supabase principal sigue mostrando hallazgos: `admin_site_feedback_stats()` expuesta como `SECURITY DEFINER`, la tabla `site_feedback_rate_limits` con RLS sin política explícita y la protección contra contraseñas filtradas desactivada. Las migraciones correctivas están versionadas en `main`, pero **no se han aplicado al proyecto principal**; por tanto, estos hallazgos no se consideran resueltos en producción.
 - El asesor de rendimiento ya no reporta claves foráneas sin índice ni evaluaciones Auth repetidas; quedan avisos de políticas permisivas superpuestas e índices sin uso que no deben eliminarse sin métricas de tráfico.
-- No se han ejecutado pruebas de navegador ni transacciones reales. La autenticación debe probarse desde un origen autorizado en Supabase.
+- La validación estática de autenticación pasó en CI en PR #15 y la reproducción limpia de migraciones pasó en CI en PR #14.
+- No se han completado pruebas de navegador ni transacciones reales. Los registros recientes de Auth muestran una solicitud de registro desde GitHub Pages, pero no una solicitud desde la vista previa de Cloudflare; todavía hace falta probar el registro desde el origen exacto que se va a utilizar.
 
 ## Próximas tareas
-1. Habilitar protección contra contraseñas filtradas en el Dashboard.
-2. Probar registro, inicio, recuperación y renovación de sesión desde un entorno local/staging.
-3. Completar las herramientas administrativas de usuarios/roles; moderación de anuncios y el flujo básico de pedidos ya están conectados.
-4. Revisar la cadena CSP y mover los scripts inline a archivos locales para poder retirar `unsafe-inline`.
-5. Cuando QvaPay apruebe la cuenta comercial, implementar y probar las funciones de facturación y verificación sin exponer secretos.
-6. Completar datos legales/contacto y solo publicar con autorización expresa.
+1. Revisar y, con autorización expresa, aplicar las migraciones de seguridad al proyecto Supabase principal; volver a ejecutar Security Advisor.
+2. Habilitar protección contra contraseñas filtradas en el Dashboard.
+3. Probar registro, inicio, confirmación de correo, recuperación y renovación de sesión desde un origen de staging autorizado.
+4. Completar las herramientas administrativas generales de usuarios/roles; la moderación de anuncios y el flujo básico de pedidos sí están conectados.
+5. Revisar la cadena CSP y mover los scripts inline a archivos locales para poder retirar `unsafe-inline`.
+6. Cuando QvaPay apruebe la cuenta comercial, implementar y probar las funciones de facturación y verificación sin exponer secretos.
+7. Completar datos legales/contacto, reemplazar correos `.example`, revisar privacidad/cookies y publicar solo con autorización expresa.
