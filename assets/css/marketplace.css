@@ -19,6 +19,7 @@
 }
 .marketplace-reset { min-height: 46px; white-space: nowrap; }
 .marketplace-count { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
+.service-card[hidden] { display: none !important; }
 .service-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
 .service-card h3 { overflow-wrap: anywhere; }
 .service-card > p { margin: 0; }
