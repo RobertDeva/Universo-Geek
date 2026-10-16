@@ -1,0 +1,148 @@
+# Static checks only: no build system, npm install, or external CDN is used.
+name: Static site validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "assets/**"
+      - ".github/workflows/static-site-check.yml"
+  push:
+    branches:
+      - "feature/marketplace-filters-main-2026-10-16"
+    paths:
+      - "*.html"
+      - "assets/**"
+      - ".github/workflows/static-site-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-static-site:
+    name: Validate local assets, links, and JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate local references and reject external script/style CDNs
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlsplit, unquote
+          import re
+
+          ROOT = Path(".").resolve()
+          CDN_HOSTS = {
+              "fonts.googleapis.com",
+              "fonts.gstatic.com",
+              "cdnjs.cloudflare.com",
+              "cdn.jsdelivr.net",
+              "unpkg.com",
+              "cdn.tailwindcss.com",
+          }
+
+          class PageParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.references = []
+                  self.inline_scripts = []
+                  self.script_open = False
+                  self.script_external = False
+                  self.script_parts = []
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "script":
+                      self.script_open = True
+                      self.script_external = bool(attrs.get("src"))
+                      self.script_parts = []
+                      if attrs.get("src"):
+                          self.references.append(("script", "src", attrs["src"]))
+                  elif tag == "link":
+                      rel = (attrs.get("rel") or "").lower().split()
+                      if attrs.get("href"):
+                          self.references.append(("link", "href", attrs["href"], "stylesheet" in rel))
+                  elif tag in {"a", "img", "source"}:
+                      attr = "href" if tag == "a" else "src"
+                      if attrs.get(attr):
+                          self.references.append((tag, attr, attrs[attr]))
+
+              def handle_data(self, data):
+                  if self.script_open and not self.script_external:
+                      self.script_parts.append(data)
+
+              def handle_endtag(self, tag):
+                  if tag == "script" and self.script_open:
+                      if not self.script_external:
+                          script = "".join(self.script_parts).strip()
+                          if script:
+                              self.inline_scripts.append(script)
+                      self.script_open = False
+                      self.script_external = False
+                      self.script_parts = []
+
+          errors = []
+          pages = sorted(ROOT.glob("*.html"))
+          inline_count = 0
+          local_count = 0
+
+          for page in pages:
+              parser = PageParser()
+              parser.feed(page.read_text(encoding="utf-8"))
+              inline_count += len(parser.inline_scripts)
+
+              for ref in parser.references:
+                  tag, attr, raw = ref[:3]
+                  is_stylesheet = len(ref) > 3 and ref[3]
+                  value = (raw or "").strip()
+                  if not value or value.startswith("#"):
+                      continue
+
+                  parts = urlsplit(value)
+                  if parts.scheme in {"mailto", "tel", "javascript", "data"}:
+                      continue
+
+                  if parts.scheme in {"http", "https"} or parts.netloc:
+                      host = (parts.hostname or "").lower()
+                      if tag == "script" or is_stylesheet or host in CDN_HOSTS:
+                          errors.append(f"{page.name}: external script/style/CDN reference: {value}")
+                      continue
+
+                  path_part = unquote(parts.path)
+                  if not path_part:
+                      continue
+                  target = (ROOT / path_part.lstrip("/")) if path_part.startswith("/") else (page.parent / path_part)
+                  if not target.exists():
+                      errors.append(f"{page.name}: missing local {attr} target: {value}")
+                  else:
+                      local_count += 1
+
+          if errors:
+              raise SystemExit("\n".join(errors))
+
+          print(f"PASS: {len(pages)} HTML pages checked.")
+          print(f"PASS: {local_count} local references resolved.")
+          print(f"PASS: {inline_count} inline scripts extracted for syntax checks.")
+          print("PASS: no external script/style CDN references found.")
+          # Save scripts for the next step without adding dependencies.
+          parser_index = 0
+          for page in pages:
+              parser = PageParser()
+              parser.feed(page.read_text(encoding="utf-8"))
+              for script in parser.inline_scripts:
+                  Path(f"/tmp/ug-inline-{parser_index}.js").write_text(script, encoding="utf-8")
+                  parser_index += 1
+          PY
+
+      - name: Check JavaScript syntax without a build step
+        shell: bash
+        run: |
+          find assets/js -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
+          for script in /tmp/ug-inline-*.js; do
+            [ -e "$script" ] || continue
+            node --check "$script"
+          done
