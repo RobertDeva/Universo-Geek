@@ -47,8 +47,9 @@ jobs:
               path.write_text('project_id = "universo-geek-ci"\n\n' + content, encoding="utf-8")
           PY
 
-      - name: Start isolated local Supabase
-        run: supabase start
+      - name: Start only services required for migration replay
+        # Keep GoTrue/Auth and Postgres; skip unrelated UI, storage, analytics, and realtime containers.
+        run: supabase start --exclude realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Apply every tracked migration from an empty local database
         run: supabase db reset --local
