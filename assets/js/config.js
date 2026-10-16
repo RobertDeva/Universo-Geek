@@ -1,26 +1,21 @@
 /**
  * UNIVERSO GEEK — configuración pública del cliente.
  *
- * Este archivo puede estar versionado porque contiene únicamente la URL del
- * proyecto y una clave publishable de Supabase. La seguridad depende de RLS,
- * grants y funciones de backend bien configuradas.
+ * Esta rama de pruebas utiliza exclusivamente el proyecto Supabase de desarrollo.
+ * No copiar esta configuración a main ni usarla en producción.
  *
- * NUNCA añadir aquí:
- * - service_role / secret keys
- * - contraseñas, claves privadas o tokens de QvaPay
- * - secretos de webhooks o credenciales administrativas
- *
- * Para cambiar de proyecto, sustituye ambos valores por los del proyecto
- * correcto y prueba Auth/RLS en un entorno de desarrollo antes de continuar.
+ * Nunca incluir aquí service_role/secret keys, contraseñas, tokens privados
+ * ni secretos de webhooks o credenciales de QvaPay.
  */
 window.UG_CONFIG = {
-  // URL pública del proyecto Supabase.
-  supabaseUrl: "https://khadcbgzziuwaxwptftw.supabase.co",
+  // Proyecto Supabase de PRUEBAS: tvjglznjntegujfczljp.
+  supabaseUrl: "https://tvjglznjntegujfczljp.supabase.co",
 
-  // Clave publishable: se envía en peticiones del navegador.
-  supabaseKey: "sb_publishable_ozK5Av8rJisppopqle6BGA_18ZKKEaV",
+  // Clave publishable del mismo proyecto de pruebas.
+  supabaseKey: "sb_publishable_CHejg8q9HPgthI1V_7Qjaw_mzxCh_L4",
 
-  // URL canónica del sitio. No usar localhost para enlaces de correo.
-  // Esta URL solo será válida cuando exista un despliegue de producción.
+  // URL estable de producción para enlaces generados en localhost.
+  // En Cloudflare Pages, login.html conserva el origen de la vista previa.
+  // Actualizar solo cuando se autorice publicar producción.
   siteUrl: "https://universogeek.pages.dev"
 };
