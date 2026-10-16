@@ -46,7 +46,7 @@ jobs:
 
           if 'payload.data={referral_code:code}' not in html:
               raise SystemExit("Optional referral code is not passed as non-authoritative signup metadata.")
-          if "La validación del referido y cualquier recompensa deben validarse en el servidor." not in html:
+          if "La atribución y cualquier recompensa deben validarse en el servidor." not in html:
               raise SystemExit("Referral metadata must be explicitly documented as untrusted.")
 
           # Never accept a success path that claims a session exists without a token.
