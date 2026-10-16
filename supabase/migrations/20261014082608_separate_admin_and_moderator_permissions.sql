@@ -4,6 +4,10 @@
 
 begin;
 
+create schema if not exists private;
+revoke all on schema private from public, anon;
+grant usage on schema private to authenticated;
+
 create or replace function private.is_admin()
 returns boolean
 language sql
@@ -31,8 +35,10 @@ as $function$
     where p.id = auth.uid() and p.role in ('admin','moderator')
   );
 $function$;
-revoke all on function private.is_moderator_or_admin() from public;
-grant execute on function private.is_moderator_or_admin() to anon, authenticated;
+revoke all on function private.is_admin() from public, anon;
+revoke all on function private.is_moderator_or_admin() from public, anon;
+grant execute on function private.is_admin() to authenticated;
+grant execute on function private.is_moderator_or_admin() to authenticated;
 
 create or replace function public.is_admin()
 returns boolean
@@ -40,9 +46,9 @@ language sql
 stable
 set search_path to 'public'
 as $function$ select private.is_admin(); $function$;
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
 
--- Privileged role changes are now admin-only because private.is_admin() is strict.
--- Keep moderator access to community comments and posts without exposing account roles.
 drop policy if exists "read visible comments" on public.comments;
 create policy "read visible comments" on public.comments for select to anon, authenticated
   using ((status = 'visible') or (user_id = (select auth.uid())) or (select private.is_moderator_or_admin()));
@@ -61,7 +67,6 @@ create policy "moderators manage community posts" on public.posts for all to aut
   using ((select private.is_moderator_or_admin()))
   with check ((select private.is_moderator_or_admin()));
 
--- Keep direct, broad management of ads/services admin-only.
 drop policy if exists "admins moderate affiliate ads" on public.affiliate_ads;
 create policy "admins moderate affiliate ads" on public.affiliate_ads for all to authenticated
   using ((select private.is_admin()))
@@ -72,8 +77,6 @@ create policy "admins moderate services" on public.marketplace_services for all 
   using ((select private.is_admin()))
   with check ((select private.is_admin()));
 
--- Moderators can inspect all submissions but must use the narrow RPCs below
--- to approve/reject/pause them; they cannot directly rewrite price or ownership.
 drop policy if exists "moderators read affiliate ads for moderation" on public.affiliate_ads;
 create policy "moderators read affiliate ads for moderation" on public.affiliate_ads
   for select to authenticated using ((select private.is_moderator_or_admin()));
@@ -97,7 +100,6 @@ begin
   if new_status not in ('approved','rejected','paused') then
     raise exception 'Invalid moderation status' using errcode = '22023';
   end if;
-
   update public.marketplace_services
      set status = new_status,
          moderation_note = nullif(left(trim(coalesce(note,'')),500),''),
@@ -106,7 +108,6 @@ begin
          updated_at = now()
    where id = target_service;
   if not found then raise exception 'Service not found' using errcode = 'P0002'; end if;
-
   insert into public.admin_audit_logs(actor_id, action, target_table, target_id, details)
   values (auth.uid(), 'moderate_service', 'marketplace_services', target_service::text,
           jsonb_build_object('status',new_status,'note',left(coalesce(note,''),500)));
@@ -128,7 +129,6 @@ begin
   if new_status not in ('approved','rejected','paused') then
     raise exception 'Invalid moderation status' using errcode = '22023';
   end if;
-
   update public.affiliate_ads
      set status = new_status,
          moderation_note = nullif(left(trim(coalesce(note,'')),500),''),
@@ -137,15 +137,14 @@ begin
          updated_at = now()
    where id = target_ad;
   if not found then raise exception 'Affiliate ad not found' using errcode = 'P0002'; end if;
-
   insert into public.admin_audit_logs(actor_id, action, target_table, target_id, details)
   values (auth.uid(), 'moderate_affiliate_ad', 'affiliate_ads', target_ad::text,
           jsonb_build_object('status',new_status,'note',left(coalesce(note,''),500)));
 end;
 $function$;
 
-revoke all on function private.moderate_marketplace_service(uuid,text,text) from public;
-revoke all on function private.moderate_affiliate_ad(uuid,text,text) from public;
+revoke all on function private.moderate_marketplace_service(uuid,text,text) from public, anon;
+revoke all on function private.moderate_affiliate_ad(uuid,text,text) from public, anon;
 grant execute on function private.moderate_marketplace_service(uuid,text,text) to authenticated;
 grant execute on function private.moderate_affiliate_ad(uuid,text,text) to authenticated;
 
