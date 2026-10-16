@@ -112,7 +112,7 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.119.0
       - name: Start isolated local Supabase stack
         run: supabase start
       - name: Replay every project migration on local Supabase
