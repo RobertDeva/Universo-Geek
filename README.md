@@ -40,7 +40,6 @@ La rama `main` es ahora la rama de integración. Los cambios recientes se han in
 ## Funciones que aún NO están listas
 
 - La publicación, moderación de servicios/anuncios y gestión de pedidos básicos están conectadas a Supabase. El panel general para usuarios, asignación de roles y transacciones financieras todavía no está implementado.
-- El panel general para usuarios, asignación de roles y transacciones todavía no está implementado. La moderación de servicios/anuncios sí está conectada.
 - El rol moderator no puede ascender usuarios ni administrar pagos; los cambios de roles y pagos quedan restringidos.
 - El checkout de membresías está desactivado. No se crean facturas ni se aceptan pagos.
 - Las funciones Edge de QvaPay no se han desplegado y su formato de firma/webhook requiere confirmación oficial y pruebas.
@@ -50,7 +49,7 @@ La rama `main` es ahora la rama de integración. Los cambios recientes se han in
 
 ## Configuración de Supabase
 
-El archivo `assets/js/config.js` contiene la URL del proyecto y una clave publicable de cliente. No guardar jamás una clave `service_role`, un token de proveedor o un secreto en el frontend.
+El archivo `assets/js/config.js` contiene la URL del proyecto y una clave publicable de cliente. En `main` apunta al proyecto Supabase principal; no despliegues `main` como vista previa ni pruebes registro en producción sin autorización. La rama `audit/rebuild-2026-10-14` usa un proyecto de pruebas distinto; no fusiones su archivo de configuración en `main`. Antes de crear una vista previa nueva, verifica qué configuración usa esa rama. No guardar jamás una clave `service_role`, un token de proveedor o un secreto en el frontend.
 
 En Supabase Auth, antes de probar:
 1. Permite solo las URL de redirección necesarias para el entorno de prueba.
@@ -77,4 +76,4 @@ Abre `http://localhost:8080`. Supabase Auth solo funcionará si el origen de pru
 
 ## Publicación
 
-No conectar ni desplegar Cloudflare Pages hasta recibir autorización explícita del propietario.
+No habilitar producción ni publicar sin autorización expresa. La conexión de Cloudflare Pages y la pausa de despliegues deben verificarse antes de cualquier despliegue; no se han podido verificar desde esta sesión.
