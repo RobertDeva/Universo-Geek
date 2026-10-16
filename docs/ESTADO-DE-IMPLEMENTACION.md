@@ -40,10 +40,10 @@ La rama `main` contiene la base integrada de HTML, CSS y JavaScript nativo. No r
 - El bot responde con reglas estáticas basadas en las páginas y flujos comprobados del sitio; no usa IA externa. Las preguntas no reconocidas o ambiguas reciben una respuesta de incertidumbre, no una invención.
 - Los pagos/membresías se describen como desactivados hasta que se apruebe y pruebe la cuenta comercial de QvaPay.
 - El envío de feedback pasa por la Edge Function `submit-site-feedback`: valida el JSON y los campos, verifica sesiones presentadas, limita el tamaño de solicitud, aplica máximo cinco envíos por hash de IP por hora y no guarda la IP sin procesar.
-- La tabla de límites tiene RLS y no concede acceso directo a usuarios públicos. Los navegadores no pueden insertar directamente en `site_feedback`; la función de servidor llama al RPC con permisos restringidos.
+- En el proyecto de pruebas, la tabla de límites tiene una política explícita de denegación y privilegios de cliente revocados. En el proyecto principal, ese cambio aún no se ha aplicado; el Security Advisor sigue mostrando el hallazgo correspondiente. Los navegadores no pueden insertar directamente en `site_feedback`; la función de servidor llama al RPC con permisos restringidos.
 - La bandeja de administradores incluye estadísticas agregadas: total, pendientes, últimos 30 días y valoración media.
 - La función Edge `submit-site-feedback` está activa en el proyecto Supabase principal; el proyecto de pruebas `tvjglznjntegujfczljp` no tiene Edge Functions desplegadas. El feedback desde una vista previa que use ese proyecto de pruebas no está verificado y requiere desplegar la función allí antes de probarlo.
-- La sintaxis del JavaScript del navegador y los scripts inline de administración se han comprobado. La función Edge está activa en Supabase. Aún falta una prueba de extremo a extremo desde un navegador real con usuario anónimo y usuario autenticado.
+- La sintaxis del JavaScript del navegador y los scripts inline de administración se han comprobado. Aún falta una prueba de extremo a extremo desde un navegador real con usuario anónimo y usuario autenticado.
 
 ## Configuración de Supabase pendiente
 1. Añadir las URL de redirección exactas para el origen de prueba y el origen de publicación autorizado. No desplegar la rama principal en una vista previa mientras `assets/js/config.js` apunte al proyecto Supabase principal.
