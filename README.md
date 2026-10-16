@@ -4,7 +4,7 @@ Plataforma en preparación para comunidad gamer, anime, manga y manhwa, enfocada
 
 ## Estado del proyecto
 
-La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audit/rebuild-2026-10-14`; **no se ha publicado ni desplegado el sitio**.
+La rama `main` es ahora la rama de integración. Los cambios recientes se han incorporado mediante pull requests y pruebas automáticas. `audit/rebuild-2026-10-14` sigue siendo una rama de pruebas histórica y divergente; no debe fusionarse en bloque. **No se ha realizado un despliegue público durante esta revisión**. El sitio todavía no está certificado para lanzamiento; consulta la [lista de preparación](docs/RELEASE-CHECKLIST-2026-10-16.md).
 
 - [Guía para editar el código manualmente](docs/GUIA-CODIGO-HUMANO.md)
 - [Asistente de ayuda y feedback](docs/ASISTENTE-Y-FEEDBACK.md)
@@ -14,6 +14,7 @@ La rama `main` se mantiene intacta. La reconstrucción de trabajo está en `audi
 - [Guía de preparación de Cloudflare Pages](docs/CLOUDFLARE-PAGES.md)
 - [Informe de cambios de seguridad en Supabase](docs/DB-SECURITY-2026-10-14.md)
 - [Configuración inicial del administrador](docs/ADMIN-BOOTSTRAP.md)
+- [Lista de preparación para lanzamiento](docs/RELEASE-CHECKLIST-2026-10-16.md)
 
 ## Tecnologías y restricciones
 
