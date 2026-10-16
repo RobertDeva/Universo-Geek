@@ -18,5 +18,9 @@ window.UG_CONFIG = {
   supabaseUrl: "https://khadcbgzziuwaxwptftw.supabase.co",
 
   // Clave publishable: se envía en peticiones del navegador.
-  supabaseKey: "sb_publishable_ozK5Av8rJisppopqle6BGA_18ZKKEaV"
+  supabaseKey: "sb_publishable_ozK5Av8rJisppopqle6BGA_18ZKKEaV",
+
+  // URL canónica del sitio. No usar localhost para enlaces de correo.
+  // Esta URL solo será válida cuando exista un despliegue de producción.
+  siteUrl: "https://universogeek.pages.dev"
 };
