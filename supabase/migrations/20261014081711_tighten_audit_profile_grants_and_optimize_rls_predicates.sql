@@ -1,17 +1,14 @@
 begin;
 
--- Remove browser access to administrative audit records except authenticated read
--- permitted by the existing admin-only RLS policy.
+-- Administrative audit logs are not writable from browser roles.
 revoke all privileges on table public.admin_audit_logs from anon;
 revoke insert, update, delete, truncate, references, trigger on table public.admin_audit_logs from authenticated;
 grant select on table public.admin_audit_logs to authenticated;
 
--- Profiles are never intended for anonymous table access. Existing authenticated
--- RLS policies remain in force.
+-- Profiles are not anonymously accessible.
 revoke all privileges on table public.profiles from anon;
 
--- Optimize row-level security predicates so auth context is evaluated once per
--- statement rather than once per candidate row.
+-- Optimize RLS predicates for comments.
 drop policy if exists "read visible comments" on public.comments;
 create policy "read visible comments" on public.comments for select to anon, authenticated
 using ((status = 'visible') or (user_id = (select auth.uid())) or (select public.is_admin()));
@@ -29,23 +26,14 @@ drop policy if exists "own comments delete" on public.comments;
 create policy "own comments delete" on public.comments for delete to authenticated
 using ((user_id = (select auth.uid())) or (select public.is_admin()));
 
+-- Purchase records are read-only to clients; a trusted backend owns payment creation
+-- and status changes. Do not define policies against crypto columns that do not exist.
 drop policy if exists "users read own purchases" on public.digital_purchases;
 create policy "users read own purchases" on public.digital_purchases for select to authenticated
 using ((user_id = (select auth.uid())) or (select public.is_admin()));
 
 drop policy if exists "users create own pending purchases" on public.digital_purchases;
-create policy "users create own pending purchases" on public.digital_purchases for insert to authenticated
-with check (
-  user_id = (select auth.uid())
-  and status = 'pending'
-  and crypto_network = any (array['BTC','ETH','SOL','BNB']::text[])
-  and reference_code is not null
-);
-
 drop policy if exists "users attach tx hash" on public.digital_purchases;
-create policy "users attach tx hash" on public.digital_purchases for update to authenticated
-using (user_id = (select auth.uid()) and status = 'pending')
-with check (user_id = (select auth.uid()) and status = 'pending');
 
 drop policy if exists "profiles own read" on public.profiles;
 create policy "profiles own read" on public.profiles for select to authenticated

@@ -1,0 +1,58 @@
+# Reproduce the complete database migration history on an isolated local Supabase stack.
+# This workflow never connects to either hosted Supabase project.
+name: Database migration replay
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
+      - ".github/workflows/database-migration-check.yml"
+  push:
+    branches:
+      - "fix/supabase-migration-compatibility-main"
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
+      - ".github/workflows/database-migration-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay-migrations:
+    name: Replay all migrations on local Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Prepare local-only project configuration
+        shell: bash
+        run: |
+          # The repository config intentionally contains only deployment guards.
+          # Add a CI project id in this disposable runner, never commit it.
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("supabase/config.toml")
+          content = path.read_text(encoding="utf-8")
+          if not any(line.strip().startswith("project_id") for line in content.splitlines()):
+              path.write_text('project_id = "universo-geek-ci"\n\n' + content, encoding="utf-8")
+          PY
+
+      - name: Start isolated local Supabase
+        run: supabase start
+
+      - name: Apply every tracked migration from an empty local database
+        run: supabase db reset --local
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup
