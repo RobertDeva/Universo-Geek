@@ -60,8 +60,25 @@ jobs:
           Path("/tmp/login-inline.js").write_text(inline[0], encoding="utf-8")
 
           config = Path("assets/js/config.js").read_text(encoding="utf-8")
-          if re.search(r"service_role|sb_secret_", config, re.I):
-              raise SystemExit("A server-side/secret Supabase key must never appear in browser config.")
+          # Remove comments first; security documentation may mention forbidden key names.
+          config_code = re.sub(r"/\\*.*?\\*/|//.*?$", "", config, flags=re.S | re.M)
+          key_match = re.search(r"""supabaseKey\\s*:\\s*["']([^"']+)["']""", config_code)
+          if not key_match:
+              raise SystemExit("Missing supabaseKey assignment in browser config.")
+          public_key = key_match.group(1)
+          if public_key.startswith("sb_secret_"):
+              raise SystemExit("A Supabase secret key must never appear in browser config.")
+          if public_key.count(".") == 2:
+              # Legacy JWT keys can be inspected without printing the key itself.
+              import base64, json
+              try:
+                  payload = public_key.split(".")[1]
+                  payload += "=" * (-len(payload) % 4)
+                  role = json.loads(base64.urlsafe_b64decode(payload)).get("role")
+              except Exception:
+                  role = None
+              if role == "service_role":
+                  raise SystemExit("A service_role JWT must never appear in browser config.")
 
           print("PASS: required authentication controls exist.")
           print("PASS: referral metadata is documented as untrusted.")
