@@ -32,7 +32,7 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: 2.118.0
+          version: 2.119.0
 
       - name: Prepare local-only project configuration
         shell: bash
@@ -47,9 +47,8 @@ jobs:
               path.write_text('project_id = "universo-geek-ci"\n\n' + content, encoding="utf-8")
           PY
 
-      - name: Start only services required for migration replay
-        # Keep GoTrue/Auth and Postgres; skip unrelated UI, storage, analytics, and realtime containers.
-        run: supabase start --exclude realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Start isolated local Supabase
+        run: supabase start
 
       - name: Apply every tracked migration from an empty local database
         run: supabase db reset --local
