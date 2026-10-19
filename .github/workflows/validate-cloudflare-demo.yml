@@ -1,0 +1,44 @@
+name: Validate Cloudflare demo artifact
+
+on:
+  push:
+    branches:
+      - chore/cloudflare-demo-prep-2026-10-19
+  pull_request:
+    branches:
+      - demo/public-validation-2026-10-18
+
+permissions:
+  contents: read
+
+jobs:
+  validate-demo-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build public-only artifact
+        run: bash scripts/build-demo.sh
+
+      - name: Verify public artifact allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for page in index.html login.html services.html membership.html dashboard.html privacy.html cookies.html terms.html payment-result.html; do
+            test -f "dist/$page"
+          done
+          test -f dist/assets/css/style.css
+          test -f dist/assets/js/config.js
+          test -f dist/assets/js/app.js
+          test ! -e dist/docs
+          test ! -e dist/supabase
+          test ! -e dist/tests
+
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            node --check "$file"
+          done < <(find dist/assets/js -type f -name '*.js' -print)
