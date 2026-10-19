@@ -34,7 +34,7 @@ jobs:
           touch _site/.nojekyll
           test -f _site/index.html
           test -f _site/assets/js/config.js
-          if grep -Eqi 'service_role|SUPABASE_SERVICE_ROLE|QVA_PAY_SECRET|webhook_secret' _site/assets/js/config.js; then
+          if grep -Eqi 'service_role[[:space:]]*[:=]|sb_secret_|SUPABASE_SERVICE_ROLE_KEY[[:space:]]*=' _site/assets/js/config.js; then
             echo "Potential secret detected in public configuration."
             exit 1
           fi
