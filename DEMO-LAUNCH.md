@@ -24,7 +24,9 @@ Antes de captar usuarios reales:
 
 ## Activar GitHub Pages
 
-El workflow `.github/workflows/deploy-demo-pages.yml` publica solo los archivos de la demo y los recursos estáticos necesarios. En el repositorio abre **Settings → Pages** y selecciona **GitHub Actions** como origen de despliegue. Después revisa **Actions**: la demo se considera publicada solo cuando el trabajo de despliegue termina correctamente y GitHub muestra la URL final.
+El workflow `.github/workflows/deploy-demo-pages.yml` prepara únicamente los archivos públicos de la demo. El repositorio tiene una sola URL de GitHub Pages: un despliegue correcto desde esta rama **reemplazará el contenido que se muestra actualmente en la raíz de esa URL**, aunque el código de `main` y las demás ramas permanecerá intacto.
+
+GitHub Pages ya está configurado para usar **GitHub Actions**. Revisa el workflow en **Actions** y confirma que el trabajo de construcción y despliegue termine correctamente antes de compartir la URL pública.
 
 ## Separación del desarrollo
 
