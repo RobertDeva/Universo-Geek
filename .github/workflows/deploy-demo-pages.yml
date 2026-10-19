@@ -22,6 +22,9 @@ jobs:
       - name: Checkout demo branch
         uses: actions/checkout@v4
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Prepare only public demo files
         run: |
           set -eu
