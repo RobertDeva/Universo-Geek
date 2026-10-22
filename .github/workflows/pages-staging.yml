@@ -1,0 +1,60 @@
+name: GitHub Pages staging (test branch only)
+
+on:
+  push:
+    branches:
+      - test/staging-auth-isolated-2026-10-18
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-staging
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Package static staging site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out test branch
+        uses: actions/checkout@v4
+
+      - name: Validate staging Supabase target
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const config = readFileSync('assets/js/config.js', 'utf8');
+          if (!config.includes('tvjglznjntegujfczljp.supabase.co')) {
+            console.error('Refusing to publish: this branch is not configured for the approved staging Supabase project.');
+            process.exit(1);
+          }
+          if (/service_role|sb_secret_/i.test(config)) {
+            console.error('Refusing to publish: possible server-side secret in browser config.');
+            process.exit(1);
+          }
+          NODE
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    name: Deploy test branch to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

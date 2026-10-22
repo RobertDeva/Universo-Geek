@@ -1,22 +1,16 @@
 /**
- * UNIVERSO GEEK — configuración pública del cliente.
+ * UNIVERSO GEEK — configuración pública DEL ENTORNO DE PRUEBAS.
  *
- * Este archivo puede estar versionado porque contiene únicamente la URL del
- * proyecto y una clave publishable de Supabase. La seguridad depende de RLS,
- * grants y funciones de backend bien configuradas.
+ * Esta versión existe únicamente en la rama test/staging-auth-isolated-2026-10-18.
+ * Está conectada al proyecto Supabase de pruebas tvjglznjntegujfczljp.
  *
- * NUNCA añadir aquí:
- * - service_role / secret keys
- * - contraseñas, claves privadas o tokens de QvaPay
- * - secretos de webhooks o credenciales administrativas
- *
- * Para cambiar de proyecto, sustituye ambos valores por los del proyecto
- * correcto y prueba Auth/RLS en un entorno de desarrollo antes de continuar.
+ * Nunca copiar estos valores a main sin una revisión explícita.
+ * NUNCA añadir service_role, claves secretas, contraseñas ni tokens de proveedores.
  */
 window.UG_CONFIG = {
-  // URL pública del proyecto Supabase.
-  supabaseUrl: "https://khadcbgzziuwaxwptftw.supabase.co",
+  // Proyecto aislado de pruebas; no apunta a la base de producción.
+  supabaseUrl: "https://tvjglznjntegujfczljp.supabase.co",
 
-  // Clave publishable: se envía en peticiones del navegador.
-  supabaseKey: "sb_publishable_ozK5Av8rJisppopqle6BGA_18ZKKEaV"
+  // Clave publishable pública del proyecto de pruebas.
+  supabaseKey: "sb_publishable_CHejg8q9HPgthI1V_7Qjaw_mzxCh_L4"
 };

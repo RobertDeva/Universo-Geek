@@ -1,0 +1,109 @@
+name: Staging checks (no deploy)
+
+on:
+  push:
+    branches:
+      - test/staging-auth-isolated-2026-10-18
+  pull_request:
+    branches:
+      - test/staging-auth-isolated-2026-10-18
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-staging-validation:
+    name: Validate static site and staging Supabase config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify required static-site files
+        run: |
+          node --input-type=module <<'NODE'
+          import { existsSync, readFileSync } from 'node:fs';
+
+          const required = [
+            'index.html',
+            'login.html',
+            'dashboard.html',
+            'assets/js/config.js',
+            'assets/js/app.js',
+            'assets/css/style.css'
+          ];
+          const missing = required.filter((file) => !existsSync(file));
+          if (missing.length) {
+            console.error('Missing required files:', missing.join(', '));
+            process.exit(1);
+          }
+          console.log('Required static-site files exist.');
+          NODE
+
+      - name: Verify Supabase config points only to staging
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const config = readFileSync('assets/js/config.js', 'utf8');
+          const expectedProject = 'tvjglznjntegujfczljp';
+          if (!config.includes(expectedProject + '.supabase.co')) {
+            console.error('Refusing staging checks: config.js does not point to the approved staging Supabase project.');
+            process.exit(1);
+          }
+          if (/service_role|sb_secret_/i.test(config)) {
+            console.error('Potential server-side secret found in browser config.');
+            process.exit(1);
+          }
+          if (!/sb_publishable_[A-Za-z0-9_-]+/.test(config) && !/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(config)) {
+            console.error('No recognized publishable/anon client key found in config.js.');
+            process.exit(1);
+          }
+          console.log('Supabase config points to the staging project and contains no obvious server-side secret.');
+          NODE
+
+      - name: Verify authentication flows are present
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const login = readFileSync('login.html', 'utf8');
+          const checks = [
+            ['signup endpoint', '/auth/v1/signup'],
+            ['password login endpoint', '/auth/v1/token?grant_type=password'],
+            ['recovery endpoint', '/auth/v1/recover'],
+            ['redirect handling', 'redirect_to='],
+            ['user-facing error handling', 'No se pudo conectar con Supabase']
+          ];
+          const failed = checks.filter(([, marker]) => !login.includes(marker));
+          if (failed.length) {
+            console.error('Authentication markers missing:', failed.map(([name]) => name).join(', '));
+            process.exit(1);
+          }
+          console.log('Expected authentication flow markers exist. This is a static check, not an end-to-end browser test.');
+          NODE
+
+      - name: Confirm no automatic deployment or payment activation
+        run: |
+          node --input-type=module <<'NODE'
+          import { readdirSync, readFileSync } from 'node:fs';
+
+          const files = readdirSync('.github/workflows').filter((file) => /\.(yml|yaml)$/i.test(file));
+          const contents = files.map((file) => readFileSync('.github/workflows/' + file, 'utf8')).join('\n');
+          if (/\bdeploy-pages\b|wrangler pages deploy|supabase functions deploy|supabase db push/i.test(contents)) {
+            console.error('Deployment/database-push command found in workflow files; review required.');
+            process.exit(1);
+          }
+          console.log('No known deploy or Supabase push command found in workflow files.');
+          NODE
